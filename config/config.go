@@ -15,13 +15,16 @@ var (
 )
 
 type Config struct {
-	Server Server `yaml:"Server"`
-	MySQL  MySQL  `yaml:"MySQL"`
+	Server Server `yaml:"server"`
+	MySQL  MySQL  `yaml:"mysql"`
+	Redis  Redis  `yaml:"redis"`
 }
 
 type Server struct {
-	HttpPort int    `yaml:"HttpPort"`
-	LogLevel string `yaml:"LogLevel"`
+	HttpPort    int    `yaml:"http_port"`
+	Env         string `yaml:"env"`
+	EnablePprof bool   `yaml:"enable_pprof"`
+	LogLevel    string `yaml:"log_level"`
 }
 type MySQL struct {
 	Dialect  string `yaml:"dialect"`
@@ -39,6 +42,14 @@ type MySQL struct {
 func (m *MySQL) GetDsn() string {
 	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s?charset=%s&parseTime=true&loc=Local",
 		m.User, m.Password, m.Host, m.Port, m.Database, m.Charset)
+}
+
+type Redis struct {
+	Addr    string `yaml:"addr"`
+	PWD     string `yaml:"password"`
+	DBIndex int    `yaml:"db_index"`
+	MaxIdle int    `yaml:"max_idle"`
+	MaxOpen int    `yaml:"max_open"`
 }
 
 func init() {
