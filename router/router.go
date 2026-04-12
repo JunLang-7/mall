@@ -1,11 +1,13 @@
 package router
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/JunLang-7/mall/adaptor"
 	"github.com/JunLang-7/mall/api/admin"
 	"github.com/JunLang-7/mall/api/customer"
+	"github.com/JunLang-7/mall/common"
 	"github.com/JunLang-7/mall/config"
 	"github.com/gin-gonic/gin"
 )
@@ -37,7 +39,6 @@ func NewRouter(conf *config.Config, adaptor adaptor.IAdaptor, checkFunc func() e
 }
 
 func (r *Router) Register(engine *gin.Engine) {
-	engine.Use(AuthMiddleware(r.SpanFilter))
 	if r.conf.Server.EnablePprof {
 		SetupPprof(engine, "/debug/pprof")
 	}
@@ -56,8 +57,22 @@ func (r *Router) AccessRecordFilter(c *gin.Context) bool {
 }
 
 func (r *Router) route(root *gin.RouterGroup) {
-	adminRoot := root.Group("/admin")
+	r.adminRoute(root)
+	r.customerRoute(root)
+}
+
+func (r *Router) adminRoute(root *gin.RouterGroup) {
+	adminRoot := root.Group("/admin", AdminAuthMiddleware(r.SpanFilter, func(ctx context.Context, token string) (*common.AdminUser, error) {
+		return &common.AdminUser{}, nil
+	}))
 	adminRoot.GET("/user/info", r.admin.GetUserInfo)
+}
+
+func (r *Router) customerRoute(root *gin.RouterGroup) {
+	cstRoot := root.Group("/customer", AuthMiddleware(r.SpanFilter, func(ctx context.Context, token string) (*common.User, error) {
+		return &common.User{}, nil
+	}))
+	cstRoot.Any("/user/info", r.admin.GetUserInfo)
 }
 
 func (r *Router) checkServer() func(ctx *gin.Context) {
