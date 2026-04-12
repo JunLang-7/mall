@@ -7,7 +7,9 @@ import (
 )
 
 type IAdaptor interface {
+	GetConf() *config.Config
 	GetDB() *gorm.DB
+	GetRedis() *redis.Client
 }
 
 type Adaptor struct {
