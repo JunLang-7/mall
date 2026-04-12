@@ -56,7 +56,8 @@ func (r *Router) AccessRecordFilter(c *gin.Context) bool {
 }
 
 func (r *Router) route(root *gin.RouterGroup) {
-	root.GET("/hello", r.admin.Hello)
+	adminRoot := root.Group("/admin")
+	adminRoot.GET("/user/info", r.admin.GetUserInfo)
 }
 
 func (r *Router) checkServer() func(ctx *gin.Context) {

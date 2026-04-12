@@ -3,13 +3,14 @@ package admin
 import (
 	"context"
 
-	"github.com/JunLang-7/mall/service/do"
+	"github.com/JunLang-7/mall/adaptor/repo/model"
+	"github.com/JunLang-7/mall/adaptor/repo/query"
 	"github.com/go-redis/redis"
 	"gorm.io/gorm"
 )
 
 type IAdminUser interface {
-	Hello(ctx context.Context, req *do.Hello) (string, error)
+	GetUserInfo(ctx context.Context, userId int64) (*model.AdminUser, error)
 }
 
 type Repo struct {
@@ -24,6 +25,7 @@ func NewRepo(db *gorm.DB, rds *redis.Client) *Repo {
 	}
 }
 
-func (r *Repo) Hello(ctx context.Context, req *do.Hello) (res string, err error) {
-	return "hello world", nil
+func (r *Repo) GetUserInfo(ctx context.Context, userId int64) (*model.AdminUser, error) {
+	qs := query.Use(r.db).AdminUser
+	return qs.WithContext(ctx).Where(qs.ID.Eq(userId)).First()
 }

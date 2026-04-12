@@ -1,10 +1,6 @@
 package dto
 
-type HelloReq struct {
-	Name string `json:"name"`
-}
-
-type HelloResp struct {
-	Hello string `json:"hello"`
-	World string `json:"world"`
+type UserInfoResp struct {
+	UserID int64  `json:"user_id"`
+	Name   string `json:"name"`
 }
