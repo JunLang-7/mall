@@ -1,7 +1,11 @@
 package router
 
 import (
+	"net/http"
+
 	"github.com/JunLang-7/mall/adaptor"
+	"github.com/JunLang-7/mall/api/admin"
+	"github.com/JunLang-7/mall/api/customer"
 	"github.com/JunLang-7/mall/config"
 	"github.com/gin-gonic/gin"
 )
@@ -17,13 +21,18 @@ type Router struct {
 	rootPath  string
 	conf      *config.Config
 	checkFunc func() error
+	admin     *admin.Ctrl
+	customer  *customer.Ctrl
 }
 
 func NewRouter(conf *config.Config, adaptor adaptor.IAdaptor, checkFunc func() error) *Router {
 	return &Router{
+		FullPPROF: conf.Server.EnablePprof,
 		rootPath:  "/api/mall",
 		conf:      conf,
 		checkFunc: checkFunc,
+		admin:     admin.NewCtrl(adaptor),
+		customer:  customer.NewCtrl(adaptor),
 	}
 }
 
@@ -32,6 +41,8 @@ func (r *Router) Register(engine *gin.Engine) {
 	if r.conf.Server.EnablePprof {
 		SetupPprof(engine, "/debug/pprof")
 	}
+	engine.Any("/ping", r.checkServer())
+
 	root := engine.Group(r.rootPath)
 	r.route(root)
 }
@@ -45,9 +56,18 @@ func (r *Router) AccessRecordFilter(c *gin.Context) bool {
 }
 
 func (r *Router) route(root *gin.RouterGroup) {
-	root.GET("/hello", func(ctx *gin.Context) {
-		ctx.JSON(200, gin.H{
-			"message": "hello world",
-		})
-	})
+	root.GET("/hello", r.admin.Hello)
+}
+
+func (r *Router) checkServer() func(ctx *gin.Context) {
+	return func(ctx *gin.Context) {
+		err := r.checkFunc()
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"message": err.Error(),
+			})
+			return
+		}
+		ctx.JSON(http.StatusOK, gin.H{})
+	}
 }

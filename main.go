@@ -14,6 +14,7 @@ import (
 
 func main() {
 	conf := config.InitConfig()
+	logger.SetLevel(conf.Server.LogLevel)
 
 	dbClient, err := initMySQL(&conf.MySQL)
 	handleErr(err)
@@ -27,10 +28,11 @@ func main() {
 }
 
 func startServer(conf *config.Config, db *gorm.DB, rds *redis.Client) *router.App {
-	return router.NewApp(conf.Server.HttpPort,
+	return router.NewApp(
+		conf.Server.HttpPort,
 		router.NewRouter(
 			conf,
-			adaptor.NewAdaptor(conf, db),
+			adaptor.NewAdaptor(conf, db, rds),
 			func() error {
 				err := func() error {
 					pingDb, err := db.DB()

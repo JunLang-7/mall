@@ -2,6 +2,7 @@ package adaptor
 
 import (
 	"github.com/JunLang-7/mall/config"
+	"github.com/go-redis/redis"
 	"gorm.io/gorm"
 )
 
@@ -12,12 +13,14 @@ type IAdaptor interface {
 type Adaptor struct {
 	conf *config.Config
 	db   *gorm.DB
+	rds  *redis.Client
 }
 
-func NewAdaptor(conf *config.Config, db *gorm.DB) IAdaptor {
+func NewAdaptor(conf *config.Config, db *gorm.DB, rds *redis.Client) IAdaptor {
 	return &Adaptor{
 		conf: conf,
 		db:   db,
+		rds:  rds,
 	}
 }
 
@@ -27,4 +30,8 @@ func (a *Adaptor) GetConf() *config.Config {
 
 func (a *Adaptor) GetDB() *gorm.DB {
 	return a.db
+}
+
+func (a *Adaptor) GetRedis() *redis.Client {
+	return a.rds
 }
