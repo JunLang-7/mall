@@ -29,7 +29,9 @@ func NewRouter(conf *config.Config, adaptor adaptor.IAdaptor, checkFunc func() e
 
 func (r *Router) Register(engine *gin.Engine) {
 	engine.Use(AuthMiddleware(r.SpanFilter))
-	SetupPprof(engine, "/debug/mall")
+	if r.conf.Server.EnablePprof {
+		SetupPprof(engine, "/debug/pprof")
+	}
 	root := engine.Group(r.rootPath)
 	r.route(root)
 }
