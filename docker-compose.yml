@@ -9,7 +9,7 @@ services:
     ports:
       - "3307:3306"  # 将容器的 3306 端口映射到宿主机的 3307 端口
     volumes:
-      - ~/data/mysql:/var/lib/mysql  # 将宿主机的 /data/mysql 目录挂载到容器的 /var/lib/mysql 目录
+      - ./data/mysql:/var/lib/mysql  # 将宿主机的 /data/mysql 目录挂载到容器的 /var/lib/mysql 目录
     restart: always  # 容器退出后总是重启
 
   redis:
@@ -19,5 +19,5 @@ services:
     ports:
       - "6379:6379"  # 将容器的 6379 端口映射到宿主机的 6379 端口
     volumes:
-      - ~/data/redis:/data  # 将宿主机的 /data/redis 目录挂载到容器的数据目录
+      - ./data/redis:/data  # 将宿主机的 /data/redis 目录挂载到容器的数据目录
     restart: always  # 容器退出后总是重启
