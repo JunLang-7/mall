@@ -63,9 +63,15 @@ func (r *Router) route(root *gin.RouterGroup) {
 
 func (r *Router) adminRoute(root *gin.RouterGroup) {
 	adminRoot := root.Group("/admin", AdminAuthMiddleware(r.SpanFilter, func(ctx context.Context, token string) (*common.AdminUser, error) {
-		return &common.AdminUser{}, nil
+		return &common.AdminUser{
+			UserID: 1,
+			Name:   "Admin One",
+		}, nil
 	}))
-	adminRoot.GET("/user/info", r.admin.GetUserInfo)
+	adminRoot.GET("/v1/user/info", r.admin.GetUserInfo)
+	adminRoot.POST("/v1/user/create", r.admin.CreateUser)
+	adminRoot.POST("/v1/user/update", r.admin.UpdateUser)
+	adminRoot.POST("/v1/user/update-status", r.admin.UpdateUserStatus)
 }
 
 func (r *Router) customerRoute(root *gin.RouterGroup) {

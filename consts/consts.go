@@ -6,3 +6,8 @@ const (
 	CustomerUserKey = "customer_user"
 	AdminUserKey    = "admin_user"
 )
+
+const (
+	IsEnable  = 1
+	IsDisable = -1
+)
