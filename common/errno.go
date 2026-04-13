@@ -34,5 +34,6 @@ var (
 	DataBaseErr = Errno{Code: 10000, Msg: "DataBase Error"}
 	RedisErr    = Errno{Code: 10001, Msg: "Redis Error"}
 
-	UserNotFoundErr = Errno{Code: 11001, Msg: "User not found"}
+	UserNotFoundErr   = Errno{Code: 11001, Msg: "User not found"}
+	InvalidCaptchaErr = Errno{Code: 110002, Msg: "Captcha Verification Error"}
 )

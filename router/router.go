@@ -3,6 +3,7 @@ package router
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/JunLang-7/mall/adaptor"
 	"github.com/JunLang-7/mall/api/admin"
@@ -49,6 +50,10 @@ func (r *Router) Register(engine *gin.Engine) {
 }
 
 func (r *Router) SpanFilter(c *gin.Context) bool {
+	path := strings.Replace(c.Request.URL.Path, r.rootPath, "", 1)
+	if _, ok := AdminAuthWhiteList[path]; ok {
+		return false
+	}
 	return true
 }
 
@@ -68,6 +73,10 @@ func (r *Router) adminRoute(root *gin.RouterGroup) {
 			Name:   "Admin One",
 		}, nil
 	}))
+	// 登录无鉴权 添加白名单
+	adminRoot.GET("/v1/user/verify/captcha", r.admin.GetSmsCodeCaptcha)
+	adminRoot.POST("/v1/user/verify/captcha/check", r.admin.CheckSmsCodeCaptcha)
+
 	adminRoot.GET("/v1/user/info", r.admin.GetUserInfo)
 	adminRoot.POST("/v1/user/create", r.admin.CreateUser)
 	adminRoot.POST("/v1/user/update", r.admin.UpdateUser)

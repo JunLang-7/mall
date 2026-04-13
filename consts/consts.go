@@ -1,5 +1,7 @@
 package consts
 
+import "time"
+
 const (
 	AdminTokenKey   = "admin_token"
 	UserTokenKey    = "user_token"
@@ -10,4 +12,9 @@ const (
 const (
 	IsEnable  = 1
 	IsDisable = -1
+)
+
+const (
+	ExpireLoginTime  = time.Minute * 2
+	ExpireTicketTime = time.Minute * 5
 )

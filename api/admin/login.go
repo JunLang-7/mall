@@ -1,0 +1,30 @@
+package admin
+
+import (
+	"github.com/JunLang-7/mall/api"
+	"github.com/JunLang-7/mall/common"
+	"github.com/JunLang-7/mall/service/dto"
+	"github.com/gin-gonic/gin"
+)
+
+// GetSmsCodeCaptcha 获取短信验证码的滑动验证码
+func (ctrl *Ctrl) GetSmsCodeCaptcha(ctx *gin.Context) {
+	req := &dto.GetVerifyCaptchaReq{}
+	if err := ctx.BindQuery(req); err != nil {
+		api.WriteResp(ctx, nil, *common.ParamErr.WithErr(err))
+		return
+	}
+	resp, errno := ctrl.user.GetSlideCaptcha(ctx.Request.Context())
+	api.WriteResp(ctx, resp, errno)
+}
+
+// CheckSmsCodeCaptcha 校验短信验证码的滑动验证码
+func (ctrl *Ctrl) CheckSmsCodeCaptcha(ctx *gin.Context) {
+	req := &dto.CheckCaptchaReq{}
+	if err := ctx.BindJSON(req); err != nil {
+		api.WriteResp(ctx, nil, *common.ParamErr.WithErr(err))
+		return
+	}
+	resp, errno := ctrl.user.CheckSlideCaptcha(ctx.Request.Context(), req)
+	api.WriteResp(ctx, resp, errno)
+}
