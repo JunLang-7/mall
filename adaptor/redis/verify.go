@@ -15,6 +15,12 @@ type IVerify interface {
 	GetCaptchaKey(ctx context.Context, key string) (string, error)
 	SetCaptchaTicket(ctx context.Context, key string, val string, expire time.Duration) error
 	GetCaptchaTicket(ctx context.Context, key string) (string, error)
+
+	SetAdminUserToken(ctx context.Context, token string, tokenData string, expire time.Duration) error
+	GetAdminUserToken(ctx context.Context, token string) (string, error)
+
+	IncrPasswordErr(ctx context.Context, mobile string, expire time.Duration) (int64, error)
+	DeletePasswordErr(ctx context.Context, mobile string) error
 }
 
 type Verify struct {
@@ -33,6 +39,14 @@ func fmtVerifyCaptchaKey(key string) string {
 
 func fmtVerifyCaptchaTicket(key string) string {
 	return fmt.Sprintf("%s:captcha:ticket:%s", config.ServerName, key)
+}
+
+func fmtVerifyAdminUserToken(token string) string {
+	return fmt.Sprintf("%s:admin:user:token:%s", config.ServerName, token)
+}
+
+func fmtVerifyPasswordErr(mobile string) string {
+	return fmt.Sprintf("%sadmin:user:password:errorcount:%s", config.ServerName, mobile)
 }
 
 func (v *Verify) SetCaptchaKey(_ context.Context, key string, val string, expire time.Duration) error {
@@ -63,4 +77,37 @@ func (v *Verify) GetCaptchaTicket(_ context.Context, key string) (string, error)
 	}
 	v.redis.Del(redisKey)
 	return get, nil
+}
+
+func (v *Verify) SetAdminUserToken(_ context.Context, token string, tokenData string, expire time.Duration) error {
+	redisKey := fmtVerifyAdminUserToken(token)
+	return v.redis.Set(redisKey, tokenData, expire).Err()
+}
+
+func (v *Verify) GetAdminUserToken(_ context.Context, token string) (string, error) {
+	redisKey := fmtVerifyAdminUserToken(token)
+	get, err := v.redis.Get(redisKey).Result()
+	if err != nil {
+		return "", err
+	}
+	return get, nil
+}
+
+func (v *Verify) IncrPasswordErr(_ context.Context, mobile string, expire time.Duration) (int64, error) {
+	redisKey := fmtVerifyPasswordErr(mobile)
+	pipe := v.redis.Pipeline()
+	incr, err := pipe.Incr(redisKey).Result()
+	if err != nil {
+		return 0, err
+	}
+	if incr == 1 {
+		pipe.Expire(redisKey, expire)
+	}
+	_, err = pipe.Exec()
+	return incr, err
+}
+
+func (v *Verify) DeletePasswordErr(_ context.Context, mobile string) error {
+	redisKey := fmtVerifyPasswordErr(mobile)
+	return v.redis.Del(redisKey).Err()
 }

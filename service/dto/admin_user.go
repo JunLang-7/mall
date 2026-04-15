@@ -1,8 +1,15 @@
 package dto
 
-type UserInfoResp struct {
-	UserID int64  `json:"user_id"`
-	Name   string `json:"name"`
+type AdminUserDto struct {
+	UserID     int64  `json:"user_id"`
+	Name       string `json:"name"`
+	NickName   string `json:"nick_name"`
+	Sex        int32  `json:"sex"`
+	Status     int32  `json:"status"`
+	Mobile     string `json:"mobile"`
+	LarkOpenID string `json:"lark_open_id"`
+	UpdateAt   int64  `json:"update_at"`
+	CreateAt   int64  `json:"create_at"`
 }
 
 type GetUserInfoReq struct {

@@ -6,6 +6,7 @@ require (
 	github.com/gin-gonic/gin v1.12.0
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/goccy/go-yaml v1.19.2
+	github.com/gogf/gf v1.16.9
 	github.com/google/uuid v1.3.0
 	github.com/wenlng/go-captcha-assets v1.0.7
 	github.com/wenlng/go-captcha/v2 v2.0.5

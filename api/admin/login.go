@@ -28,3 +28,14 @@ func (ctrl *Ctrl) CheckSmsCodeCaptcha(ctx *gin.Context) {
 	resp, errno := ctrl.user.CheckSlideCaptcha(ctx.Request.Context(), req)
 	api.WriteResp(ctx, resp, errno)
 }
+
+// MobilePasswordLogin 手机号密码登录
+func (ctrl *Ctrl) MobilePasswordLogin(ctx *gin.Context) {
+	req := &dto.MobileLoginReq{}
+	if err := ctx.BindJSON(req); err != nil {
+		api.WriteResp(ctx, nil, *common.ParamErr.WithErr(err))
+		return
+	}
+	resp, errno := ctrl.user.MobilePasswordLogin(ctx.Request.Context(), req)
+	api.WriteResp(ctx, resp, errno)
+}

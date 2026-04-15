@@ -26,3 +26,14 @@ type CheckCaptchaResp struct {
 	Ticket string `json:"ticket"`
 	Expire int64  `json:"expire"`
 }
+
+type MobileLoginReq struct {
+	Mobile   string `json:"mobile"`
+	Password string `json:"password"`
+	Ticket   string `json:"ticket"`
+}
+
+type LoginResp struct {
+	Token string       `json:"token"`
+	User  AdminUserDto `json:"user"`
+}

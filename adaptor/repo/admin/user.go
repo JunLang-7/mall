@@ -14,6 +14,7 @@ import (
 
 type IAdminUser interface {
 	GetUserInfo(ctx context.Context, userId int64) (*model.AdminUser, error)
+	GetUserByMobile(ctx context.Context, mobile string) (*model.AdminUser, error)
 	CreateUser(ctx context.Context, user *do.CreateUser) (int64, error)
 	UpdateUser(ctx context.Context, user *do.UpdateUser) error
 	UpdateUserStatus(ctx context.Context, user *do.UpdateUserStatus) error
@@ -34,6 +35,11 @@ func NewRepo(db *gorm.DB, rds *redis.Client) *Repo {
 func (r *Repo) GetUserInfo(ctx context.Context, userId int64) (*model.AdminUser, error) {
 	qs := query.Use(r.db).AdminUser
 	return qs.WithContext(ctx).Where(qs.ID.Eq(userId)).First()
+}
+
+func (r *Repo) GetUserByMobile(ctx context.Context, mobile string) (*model.AdminUser, error) {
+	qs := query.Use(r.db).AdminUser
+	return qs.WithContext(ctx).Where(qs.Mobile.Eq(mobile)).First()
 }
 
 func (r *Repo) CreateUser(ctx context.Context, req *do.CreateUser) (int64, error) {

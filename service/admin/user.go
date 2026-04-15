@@ -2,6 +2,7 @@ package admin
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 
 	"github.com/JunLang-7/mall/common"
@@ -12,16 +13,16 @@ import (
 	"gorm.io/gorm"
 )
 
-func (s *Service) GetUserInfo(ctx context.Context, adminUser *common.AdminUser, userID int64) (*dto.UserInfoResp, common.Errno) {
+func (s *Service) GetUserInfo(ctx context.Context, adminUser *common.AdminUser, userID int64) (*dto.AdminUserDto, common.Errno) {
 	user, err := s.adminUser.GetUserInfo(ctx, userID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, common.UserNotFoundErr
+			return nil, common.InvalidPasswordErr
 		}
 		logger.Error("GetUserInfo error", zap.Error(err), zap.Int64("request_user_id", userID), zap.Any("admin_user", adminUser))
 		return nil, *common.DataBaseErr.WithErr(err)
 	}
-	return &dto.UserInfoResp{UserID: user.ID, Name: user.Name}, common.OK
+	return &dto.AdminUserDto{UserID: user.ID, Name: user.Name}, common.OK
 }
 
 func (s *Service) CreateUser(ctx context.Context, adminUser *common.AdminUser, req *dto.CreateUserReq) (int64, common.Errno) {
@@ -65,4 +66,22 @@ func (s *Service) UpdateUserStatus(ctx context.Context, adminUser *common.AdminU
 		return *common.DataBaseErr.WithErr(err)
 	}
 	return common.OK
+}
+
+func (s *Service) GetAdminUserByToken(ctx context.Context, token string) (*common.AdminUser, common.Errno) {
+	userString, err := s.verify.GetAdminUserToken(ctx, token)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, common.InvalidPasswordErr
+		}
+		logger.Error("GetAdminUserByToken error", zap.Error(err), zap.Any("token", token))
+		return nil, *common.DataBaseErr.WithErr(err)
+	}
+	adminUser := &common.AdminUser{}
+	err = json.Unmarshal([]byte(userString), adminUser)
+	if err != nil {
+		logger.Error("GetAdminUserByToken json.Unmarshal error", zap.Error(err), zap.Any("token", token))
+		return nil, *common.ServerErr.WithErr(err)
+	}
+	return adminUser, common.OK
 }

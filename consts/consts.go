@@ -15,6 +15,12 @@ const (
 )
 
 const (
-	ExpireLoginTime  = time.Minute * 2
-	ExpireTicketTime = time.Minute * 5
+	ExpireLoginTime          = time.Minute * 2
+	ExpireTicketTime         = time.Minute * 5
+	ExpireAdminUserTokenTime = time.Hour * 24
+	ExpirePasswordErrTime    = time.Minute * 5
+)
+
+const (
+	PasswordErrMaxCount = 3
 )

@@ -24,6 +24,10 @@ func (e *Errno) WithErr(err error) *Errno {
 	return e
 }
 
+func (e *Errno) IsOK() bool {
+	return e.Code == 200
+}
+
 var (
 	OK            = Errno{Code: 200, Msg: "OK"}
 	ServerErr     = Errno{Code: 500, Msg: "Internal Server Error"}
@@ -34,6 +38,7 @@ var (
 	DataBaseErr = Errno{Code: 10000, Msg: "DataBase Error"}
 	RedisErr    = Errno{Code: 10001, Msg: "Redis Error"}
 
-	UserNotFoundErr   = Errno{Code: 11001, Msg: "User not found"}
-	InvalidCaptchaErr = Errno{Code: 110002, Msg: "Captcha Verification Error"}
+	InvalidPasswordErr  = Errno{Code: 11001, Msg: "User Not Exists or Incorrect Password"}
+	InvalidCaptchaErr   = Errno{Code: 110002, Msg: "Captcha Verification Error"}
+	PasswordErrLimitErr = Errno{Code: 110003, Msg: "Password Error Limit Exceeded, Please Try Again Later"}
 )
