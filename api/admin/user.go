@@ -1,6 +1,9 @@
 package admin
 
 import (
+	"context"
+	"errors"
+
 	"github.com/JunLang-7/mall/api"
 	"github.com/JunLang-7/mall/common"
 	"github.com/JunLang-7/mall/service/dto"
@@ -63,4 +66,13 @@ func (ctrl *Ctrl) UpdateUserStatus(ctx *gin.Context) {
 	}
 	errno := ctrl.user.UpdateUserStatus(ctx.Request.Context(), user, req)
 	api.WriteResp(ctx, nil, errno)
+}
+
+// GetAdminUserByToken 获取管理员用户信息
+func (ctrl *Ctrl) GetAdminUserByToken(ctx context.Context, token string) (*common.AdminUser, error) {
+	adminUser, errno := ctrl.user.GetAdminUserByToken(ctx, token)
+	if !errno.IsOK() {
+		return nil, errors.New("failed to get admin user by token")
+	}
+	return adminUser, nil
 }

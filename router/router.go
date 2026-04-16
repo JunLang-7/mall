@@ -45,6 +45,9 @@ func (r *Router) Register(engine *gin.Engine) {
 	}
 	engine.Any("/ping", r.checkServer())
 
+	// 静态文件服务 (前端页面)
+	engine.Static("/web", "./web")
+
 	root := engine.Group(r.rootPath)
 	r.route(root)
 }
@@ -68,15 +71,14 @@ func (r *Router) route(root *gin.RouterGroup) {
 
 func (r *Router) adminRoute(root *gin.RouterGroup) {
 	adminRoot := root.Group("/admin", AdminAuthMiddleware(r.SpanFilter, func(ctx context.Context, token string) (*common.AdminUser, error) {
-		return &common.AdminUser{
-			UserID: 1,
-			Name:   "Admin One",
-		}, nil
+		return r.admin.GetAdminUserByToken(ctx, token)
 	}))
 	// 登录无鉴权 添加白名单
 	adminRoot.GET("/v1/user/verify/captcha", r.admin.GetSmsCodeCaptcha)
 	adminRoot.POST("/v1/user/verify/captcha/check", r.admin.CheckSmsCodeCaptcha)
 	adminRoot.POST("/v1/user/mobile/password_login", r.admin.MobilePasswordLogin)
+	adminRoot.GET("/v1/user/mobile/verify_login", r.admin.MobileVerifyLogin)
+	adminRoot.POST("/v1/user/lark/qrcode_login", r.admin.LarkQrCodeLogin)
 
 	adminRoot.GET("/v1/user/info", r.admin.GetUserInfo)
 	adminRoot.POST("/v1/user/create", r.admin.CreateUser)

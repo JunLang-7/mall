@@ -38,7 +38,8 @@ var (
 	DataBaseErr = Errno{Code: 10000, Msg: "DataBase Error"}
 	RedisErr    = Errno{Code: 10001, Msg: "Redis Error"}
 
-	InvalidPasswordErr  = Errno{Code: 11001, Msg: "User Not Exists or Incorrect Password"}
-	InvalidCaptchaErr   = Errno{Code: 110002, Msg: "Captcha Verification Error"}
-	PasswordErrLimitErr = Errno{Code: 110003, Msg: "Password Error Limit Exceeded, Please Try Again Later"}
+	InvalidPasswordErr   = Errno{Code: 11001, Msg: "User Not Exists or Incorrect Password"}
+	InvalidCaptchaErr    = Errno{Code: 110002, Msg: "Captcha Verification Error"}
+	PasswordErrLimitErr  = Errno{Code: 110003, Msg: "Password Error Limit Exceeded, Please Try Again Later"}
+	AdminUserNotExistErr = Errno{Code: 110004, Msg: "Admin User Not Exist"}
 )

@@ -2,13 +2,14 @@ package admin
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 
 	"github.com/JunLang-7/mall/common"
 	"github.com/JunLang-7/mall/service/do"
 	"github.com/JunLang-7/mall/service/dto"
 	"github.com/JunLang-7/mall/utils/logger"
+	"github.com/go-redis/redis"
+	"github.com/gogf/gf/util/gconv"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
@@ -71,16 +72,16 @@ func (s *Service) UpdateUserStatus(ctx context.Context, adminUser *common.AdminU
 func (s *Service) GetAdminUserByToken(ctx context.Context, token string) (*common.AdminUser, common.Errno) {
 	userString, err := s.verify.GetAdminUserToken(ctx, token)
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, common.InvalidPasswordErr
+		if errors.Is(err, redis.Nil) {
+			return nil, common.AuthErr
 		}
-		logger.Error("GetAdminUserByToken error", zap.Error(err), zap.Any("token", token))
-		return nil, *common.DataBaseErr.WithErr(err)
+		logger.Error("GetAdminUserByToken redis get error", zap.Error(err), zap.Any("token", token))
+		return nil, *common.RedisErr.WithErr(err)
 	}
 	adminUser := &common.AdminUser{}
-	err = json.Unmarshal([]byte(userString), adminUser)
+	err = gconv.Struct(userString, adminUser)
 	if err != nil {
-		logger.Error("GetAdminUserByToken json.Unmarshal error", zap.Error(err), zap.Any("token", token))
+		logger.Error("GetAdminUserByToken gconv.Struct error", zap.Error(err), zap.Any("token", token))
 		return nil, *common.ServerErr.WithErr(err)
 	}
 	return adminUser, common.OK

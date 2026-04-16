@@ -37,3 +37,9 @@ type LoginResp struct {
 	Token string       `json:"token"`
 	User  AdminUserDto `json:"user"`
 }
+
+type LarkQrCodeLoginReq struct {
+	AppCode     int32  `json:"app_code"`
+	Code        string `json:"code"`
+	RedirectUrl string `json:"redirect_url"`
+}

@@ -87,7 +87,50 @@ func (s *Service) MobilePasswordLogin(ctx context.Context, req *dto.MobileLoginR
 	}, common.OK
 }
 
+// LarkQrCodeLogin 飞书扫码登录
 func (s *Service) LarkQrCodeLogin(ctx context.Context, req *dto.LarkQrCodeLoginReq) (*dto.LoginResp, common.Errno) {
-	// TODO: 实现飞书扫码登录逻辑
-	panic("Unimplemented")
+	// 获取飞书用户 access token
+	accessToken, errno := s.token.GetLarkUserAccessToken(ctx, req.AppCode, req.Code, req.RedirectUrl, "", false)
+	if !errno.IsOK() {
+		logger.Error("LarkQrCodeLogin GetLarkUserAccessToken error", zap.Any("req", req))
+		return nil, common.ServerErr
+	}
+	// 通过 access token 获取飞书用户信息
+	larkUserInfo, err := s.lark.GetLarkUserInfo(ctx, accessToken.Token)
+	if err != nil {
+		logger.Error("LarkQrCodeLogin GetLarkUserInfo error", zap.Error(err), zap.Any("req", req))
+		return nil, *common.ServerErr.WithErr(err)
+	}
+	// 根据飞书用户信息中的 OpenID 获取对应的管理员用户信息
+	adminUser, err := s.adminUser.GetUserByLarkOpenID(ctx, larkUserInfo.OpenID)
+	if err != nil {
+		logger.Error("LarkQrCodeLogin GetUserByLarkOpenID error", zap.Error(err), zap.Any("req", req))
+		return nil, *common.DataBaseErr.WithErr(err)
+	}
+	if adminUser == nil || adminUser.Status != consts.IsEnable {
+		return nil, common.AdminUserNotExistErr
+	}
+	adminUserDto := dto.AdminUserDto{
+		UserID:     adminUser.ID,
+		Name:       adminUser.Name,
+		NickName:   adminUser.NickName,
+		Sex:        adminUser.Sex,
+		Status:     adminUser.Status,
+		Mobile:     adminUser.Mobile,
+		LarkOpenID: adminUser.LarkOpenID,
+		UpdateAt:   adminUser.UpdateAt.UnixMilli(),
+		CreateAt:   adminUser.CreateAt.UnixMilli(),
+	} 
+	// NOTE: 可使用JWT
+	tokenUuid := tools.UUIDHex()
+	// 处理token
+	err = s.processToken(ctx, tokenUuid, &adminUserDto)
+	if err != nil {
+		logger.Error("LarkQrCodeLogin processToken error", zap.Error(err), zap.Any("req", req))
+		return nil, *common.RedisErr.WithErr(err)
+	}
+	return &dto.LoginResp{
+		Token: tokenUuid,
+		User:  adminUserDto,
+	}, common.OK
 }
