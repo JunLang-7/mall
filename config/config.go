@@ -79,6 +79,8 @@ func getFromLocal() (*Config, error) {
 		if err != nil {
 			return nil, err
 		}
+		// 展开环境变量 ${VAR} -> os.Getenv("VAR")
+		content = []byte(os.ExpandEnv(string(content)))
 		err = yaml.Unmarshal(content, &tempConf)
 		if err != nil {
 			return nil, err

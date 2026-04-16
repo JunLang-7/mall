@@ -1,0 +1,36 @@
+server:
+  http_port: 8080
+  env: local
+  enable_pprof: true
+  log_level: debug
+
+mysql:
+  dialect: mysql
+  user: root
+  password: ${MYSQL_PASSWORD}
+  host: 127.0.0.1
+  port: 3307
+  database: mall
+  charset: utf8mb4
+  show_sql: true
+  max_open: 20
+  max_idle: 5
+
+redis:
+  addr: 127.0.0.1:6379
+  password: ${REDIS_PASSWORD}
+  db_index: 0
+  max_idle: 2
+  max_open: 10
+
+app_conf:
+  1000:
+    app_type: official
+    app_name: 公众号
+    app_id: ${OFFICIAL_APP_ID}
+    app_secret: ${OFFICIAL_APP_SECRET}
+  2000:
+    app_type: lark
+    app_name: 飞书
+    app_id: ${LARK_APP_ID}
+    app_secret: ${LARK_APP_SECRET}

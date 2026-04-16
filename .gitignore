@@ -1,2 +1,14 @@
 .idea
 data
+web
+
+# 敏感配置文件
+mall_local.yml
+*_local.yml
+.env
+.env.local
+.env.*.local
+
+# 保留示例文件
+!.env.example
+!*_local.yml.example
