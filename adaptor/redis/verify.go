@@ -16,6 +16,10 @@ type IVerify interface {
 	SetCaptchaTicket(ctx context.Context, key string, val string, expire time.Duration) error
 	GetCaptchaTicket(ctx context.Context, key string) (string, error)
 
+	SetVerifyCode(ctx context.Context, mobile, sceneCode string, value interface{}, expire time.Duration) error
+	GetVerifyCode(ctx context.Context, mobile, sceneCode string) (string, error)
+	DelVerifyCode(ctx context.Context, mobile, sceneCode string) error
+
 	SetAdminUserToken(ctx context.Context, token string, tokenData string, expire time.Duration) error
 	GetAdminUserToken(ctx context.Context, token string) (string, error)
 
@@ -41,12 +45,16 @@ func fmtVerifyCaptchaTicket(key string) string {
 	return fmt.Sprintf("%s:captcha:ticket:%s", config.ServerName, key)
 }
 
+func fmtVerifyVerifyCode(mobile, sceneCode string) string {
+	return fmt.Sprintf("%s:verify:code:%s:%s", config.ServerName, mobile, sceneCode)
+}
+
 func fmtVerifyAdminUserToken(token string) string {
 	return fmt.Sprintf("%s:admin:user:token:%s", config.ServerName, token)
 }
 
 func fmtVerifyPasswordErr(mobile string) string {
-	return fmt.Sprintf("%sadmin:user:password:errorcount:%s", config.ServerName, mobile)
+	return fmt.Sprintf("%s:admin:user:password:errorcount:%s", config.ServerName, mobile)
 }
 
 func (v *Verify) SetCaptchaKey(_ context.Context, key string, val string, expire time.Duration) error {
@@ -77,6 +85,21 @@ func (v *Verify) GetCaptchaTicket(_ context.Context, key string) (string, error)
 	}
 	v.redis.Del(redisKey)
 	return get, nil
+}
+
+func (v *Verify) SetVerifyCode(ctx context.Context, mobile, sceneCode string, value interface{}, expire time.Duration) error {
+	redisKey := fmtVerifyVerifyCode(mobile, sceneCode)
+	return v.redis.Set(redisKey, value, expire).Err()
+}
+
+func (v *Verify) GetVerifyCode(ctx context.Context, mobile, sceneCode string) (string, error) {
+	redisKey := fmtVerifyVerifyCode(mobile, sceneCode)
+	return v.redis.Get(redisKey).Result()
+}
+
+func (v *Verify) DelVerifyCode(ctx context.Context, mobile, sceneCode string) error {
+	redisKey := fmtVerifyVerifyCode(mobile, sceneCode)
+	return v.redis.Del(redisKey).Err()
 }
 
 func (v *Verify) SetAdminUserToken(_ context.Context, token string, tokenData string, expire time.Duration) error {

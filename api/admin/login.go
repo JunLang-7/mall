@@ -29,6 +29,17 @@ func (ctrl *Ctrl) CheckSmsCodeCaptcha(ctx *gin.Context) {
 	api.WriteResp(ctx, resp, errno)
 }
 
+// GetSmsCodeVerify 获取短信验证码
+func (ctrl *Ctrl) GetSmsCodeVerify(ctx *gin.Context) {
+	req := &dto.GetSmsCodeVerifyReq{}
+	if err := ctx.BindJSON(req); err != nil {
+		api.WriteResp(ctx, nil, *common.ParamErr.WithErr(err))
+		return
+	}
+	errno := ctrl.user.GetSmsCodeVerify(ctx.Request.Context(), req)
+	api.WriteResp(ctx, nil, errno)
+}
+
 // MobilePasswordLogin 手机号密码登录
 func (ctrl *Ctrl) MobilePasswordLogin(ctx *gin.Context) {
 	req := &dto.MobileLoginReq{}
@@ -52,4 +63,3 @@ func (ctrl *Ctrl) LarkQrCodeLogin(ctx *gin.Context) {
 	resp, errno := ctrl.user.LarkQrCodeLogin(ctx.Request.Context(), req)
 	api.WriteResp(ctx, resp, errno)
 }
-

@@ -19,6 +19,7 @@ type Config struct {
 	MySQL   MySQL             `yaml:"mysql"`
 	Redis   Redis             `yaml:"redis"`
 	AppConf map[int32]AppConf `yaml:"app_conf"`
+	BizConf BizConf           `yaml:"biz_conf"`
 }
 
 type Server struct {
@@ -58,6 +59,10 @@ type AppConf struct {
 	AppName   string `yaml:"app_name"`
 	AppID     string `yaml:"app_id"`
 	AppSecret string `yaml:"app_secret"`
+}
+
+type BizConf struct {
+	LarkGroupID string `yaml:"lark_group_id"`
 }
 
 func init() {

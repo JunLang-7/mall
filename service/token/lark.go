@@ -60,3 +60,55 @@ func (s *Service) getLarkUserAccessToken(ctx context.Context, appCode int32, cod
 	}
 	return token, nil
 }
+
+// GetLarkTenantAccessToken 获取飞书租户 access token
+func (s *Service) GetLarkTenantAccessToken(ctx context.Context, appCode int32, force bool) (*AccessToken, common.Errno) {
+	token, err := s.getLarkTenantAccessToken(ctx, appCode, force)
+	if err != nil {
+		logger.Error("GetLarkTenantAccessToken get token failed", zap.Error(err), zap.Any("appCode", appCode))
+		return nil, *common.ServerErr.WithErr(err)
+	}
+	return token, common.OK
+}
+
+// getLarkTenantAccessToken 获取飞书租户 access token，支持强制刷新
+func (s *Service) getLarkTenantAccessToken(ctx context.Context, appCode int32, force bool) (*AccessToken, error) {
+	lockKey := s.lockTokenKeyFmt(appCode)
+	cacheKey := s.cacheTokenKeyFmt(appCode)
+
+	if !force {
+		// 尝试从缓存获取 token，避免频繁调用飞书接口
+		token, err := s.getToken(ctx, cacheKey)
+		if err != nil {
+			logger.Error("getLarkTenantAccessToken get cache failed", zap.Error(err), zap.Any("appCode", appCode))
+			return nil, err
+		}
+		if token != nil && token.Token != "" {
+			return token, nil
+		}
+	}
+
+	// 定义获取 token 的函数
+	getTokenFunc := func() (*AccessToken, error) {
+		token, err := s.lark.GetLarkTenantAccessToken(ctx, appCode)
+		if err != nil {
+			logger.Error("getLarkTenantAccessToken GetLarkTenantAccessToken get token failed", zap.Error(err), zap.Any("appCode", appCode))
+			return nil, err
+		}
+		return &AccessToken{
+			Token:     token.TenantAccessToken,
+			ExpiresIn: token.ExpiresIn,
+		}, nil
+	}
+
+	// 缓存不存在或强制刷新，获取新 token 并更新缓存
+	token, err := s.updateToken(ctx, getTokenFunc, lockKey, cacheKey)
+	if err != nil {
+		logger.Error("getLarkTenantAccessToken updateToken failed", zap.Error(err), zap.Any("appCode", appCode))
+		return nil, err
+	}
+	if token == nil || token.Token == "" {
+		return getTokenFunc()
+	}
+	return token, nil
+}

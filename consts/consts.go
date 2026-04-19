@@ -19,8 +19,14 @@ const (
 	ExpireTicketTime         = time.Minute * 5
 	ExpireAdminUserTokenTime = time.Hour * 24
 	ExpirePasswordErrTime    = time.Minute * 5
+	ExpireVerifyCodeErrTime  = time.Minute * 5
 )
 
 const (
 	PasswordErrMaxCount = 3
+)
+
+const (
+	WechatAppCode = 1000
+	LarkAppCode   = 2000
 )

@@ -12,24 +12,47 @@ import (
 	"github.com/JunLang-7/mall/adaptor"
 	"github.com/JunLang-7/mall/config"
 	"github.com/JunLang-7/mall/service/do"
+	"github.com/JunLang-7/mall/utils/logger"
+	"github.com/samber/lo"
+	"go.uber.org/zap"
 )
 
 const (
-	larkHost        = "https://open.feishu.cn"
-	HttpAccept      = "application/json"
-	HttpContentType = "application/json;charset=utf-8"
+	larkHost           = "https://open.feishu.cn"
+	HttpAccept         = "application/json"
+	HttpContentType    = "application/json;charset=utf-8"
+	LarkChatGroupType  = "chat_id"
+	LarkChatPersonType = "open_id"
 )
 
 type ILark interface {
 	GetLarkUserInfo(ctx context.Context, userAccessToken string) (*do.LarkUserInfo, error)
 	GetLarkUserAccessToken(ctx context.Context, appCode int32, code, redirectUrl, scope string) (*do.LarkUserAccessToken, error)
 	GetLarkTenantAccessToken(ctx context.Context, appCode int32) (*do.LarkUserAccessToken, error)
+	SendLarkMsg(ctx context.Context, tokenFunc GetTokenFunc, req *do.SendLarkMsg) error
 }
 
 type GetTokenFunc func(ctx context.Context, force bool) (string, error)
 
 type Lark struct {
 	conf *config.Config
+}
+
+type LarkResp struct {
+	Code int32  `json:"code"`
+	Msg  string `json:"msg"`
+}
+
+func (l LarkResp) IsOK() bool {
+	return l.Code == 0
+}
+
+func (l LarkResp) IsTokenInvalid() bool {
+	return l.Code == 4001
+}
+
+func (l LarkResp) Error() string {
+	return fmt.Sprintf("code: %d, msg: %s", l.Code, l.Msg)
 }
 
 func NewLark(adaptor adaptor.IAdaptor) *Lark {
@@ -147,6 +170,51 @@ func (l *Lark) GetLarkTenantAccessToken(ctx context.Context, appCode int32) (*do
 		TenantAccessToken: resp.TenantAccessToken,
 		ExpiresIn:         resp.Expire,
 	}, nil
+}
+
+// SendLarkMsg 发送飞书消息
+func (l *Lark) SendLarkMsg(ctx context.Context, getToken GetTokenFunc, req *do.SendLarkMsg) error {
+	path := fmt.Sprintf("%s/open-apis/im/v1/messages", larkHost)
+	resp := &LarkResp{}
+	force := false
+	reqHeader := map[string]string{
+		"Content-Type": HttpContentType,
+	}
+	body := map[string]interface{}{
+		"content":    fmt.Sprintf("{\"text\": \"%s\"}", req.Content),
+		"msg_type":   "text",
+		"receive_id": req.OpenID,
+	}
+	// 发送消息，遇到 token 无效时重试一次
+	for _, v := range lo.Range(2) {
+		token, err := getToken(ctx, force)
+		if err != nil {
+			return err
+		}
+		reqHeader["Authorization"] = fmt.Sprintf("Bearer %s", token)
+		url := fmt.Sprintf("%s?receive_id_type=%s", path, req.IDType)
+		// 发送 HTTP 请求并解析响应
+		err = doRequest(ctx, http.MethodPost, url, reqHeader, body, resp)
+		if err != nil {
+			logger.Error("SendLarkMsg send fail", zap.Any("index", v), zap.String("url", url), zap.Error(err))
+			continue
+		}
+		// 发送成功
+		if resp.IsOK() {
+			break
+		}
+		// token失效，触发强刷
+		if resp.IsTokenInvalid() {
+			force = true
+			continue
+		}
+		logger.Error("SendLarkMsg send fail", zap.Any("index", v), zap.Any("resp", resp.Error()))
+	}
+	if !resp.IsOK() {
+		return errors.New("SendLarkMsg failed after retries")
+	}
+
+	return nil
 }
 
 // doRequest 发送 HTTP 请求并解析响应

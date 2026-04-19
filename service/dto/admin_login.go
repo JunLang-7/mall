@@ -43,3 +43,9 @@ type LarkQrCodeLoginReq struct {
 	Code        string `json:"code"`
 	RedirectUrl string `json:"redirect_url"`
 }
+
+type GetSmsCodeVerifyReq struct {
+	Scene  string `json:"scene"` // login, register, reset_password
+	Mobile string `json:"mobile"`
+	Ticket string `json:"ticket"`
+}

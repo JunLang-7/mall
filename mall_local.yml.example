@@ -23,6 +23,9 @@ redis:
   max_idle: 2
   max_open: 10
 
+biz_conf:
+  lark_group_id: ${LARK_GROUP_ID}
+
 app_conf:
   1000:
     app_type: official

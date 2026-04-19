@@ -25,3 +25,17 @@ type LarkUserAccessToken struct {
 	ErrCode           int64  `json:"error"`
 	ErrMsg            string `json:"error_description"`
 }
+
+type LarkTenantAccessToken struct {
+	Code              int64  `json:"code"`
+	Msg               string `json:"msg"`
+	TenantAccessToken string `json:"tenant_access_token"`
+	Expire            int64  `json:"expire"`
+}
+
+type SendLarkMsg struct {
+	AppCode int32  // APP CODE
+	OpenID  string // lark open_id
+	IDType  string
+	Content string // fmt.Sprintf("<b>手机验证码</b>\\n\\n手机号：%s \\n验证码：%s", req.Mobile, verifyCode)
+}
