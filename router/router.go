@@ -100,6 +100,13 @@ func (r *Router) adminRoute(root *gin.RouterGroup) {
 	adminRoot.POST("/v1/perm/create", r.admin.CreatePermission)
 	adminRoot.POST("/v1/perm/update", r.admin.UpdatePermission)
 	adminRoot.POST("/v1/perm/delete", r.admin.DeletePermission)
+
+	// 角色管理
+	adminRoot.POST("/v1/role/create", r.admin.AddRole)
+	adminRoot.POST("/v1/role/update", r.admin.UpdateRole)
+	adminRoot.GET("v1/role/list", r.admin.ListRole)
+	adminRoot.GET("/v1/role/my_roles", r.admin.MyRoles)
+	adminRoot.POST("/v1/role/perm/sets", r.admin.SetRolePerms)
 }
 
 func (r *Router) customerRoute(root *gin.RouterGroup) {

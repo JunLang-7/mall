@@ -10,6 +10,7 @@ import (
 	"github.com/JunLang-7/mall/common"
 	"github.com/JunLang-7/mall/consts"
 	"github.com/JunLang-7/mall/service/do"
+	"github.com/samber/lo"
 	"gorm.io/gorm"
 )
 
@@ -19,6 +20,7 @@ type IPerm interface {
 	CreatePermission(ctx context.Context, req *do.PermCreate) (int64, error)
 	UpdatePermissions(ctx context.Context, req *do.PermUpdateList) error
 	DeletePermission(ctx context.Context, req *do.PermDelete) error
+	GetPermNameMap(ctx context.Context, permIDs []int64) (map[int64]string, error)
 }
 
 type AdminPerm struct {
@@ -109,4 +111,16 @@ func (a *AdminPerm) DeletePermission(ctx context.Context, req *do.PermDelete) er
 		ID: req.ID,
 	})
 	return err
+}
+
+func (a *AdminPerm) GetPermNameMap(ctx context.Context, permIDs []int64) (map[int64]string, error) {
+	qs := query.Use(a.db).Permission
+	list, err := qs.WithContext(ctx).Where(qs.ID.In(permIDs...)).Select(qs.Name, qs.ID).Find()
+	if err != nil {
+		return nil, err
+	}
+	retMap := lo.SliceToMap(list, func(item *model.Permission) (int64, string) {
+		return item.ID, item.Name
+	})
+	return retMap, nil
 }

@@ -25,3 +25,7 @@ func GenValidateCode(width int) string {
 	}
 	return sb.String()
 }
+
+func GetAllLike(str string) string {
+	return "%" + str + "%"
+}
