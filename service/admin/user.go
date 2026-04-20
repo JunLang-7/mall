@@ -69,6 +69,15 @@ func (s *Service) UpdateUserStatus(ctx context.Context, adminUser *common.AdminU
 	return common.OK
 }
 
+func (s *Service) DeleteUser(ctx context.Context, adminUser *common.AdminUser, req *dto.DeleteUserReq) common.Errno {
+	err := s.adminUser.DeleteUser(ctx, req.ID)
+	if err != nil {
+		logger.Error("DeleteUser error", zap.Error(err), zap.Any("req", req))
+		return *common.DataBaseErr.WithErr(err)
+	}
+	return common.OK
+}
+
 func (s *Service) GetAdminUserByToken(ctx context.Context, token string) (*common.AdminUser, common.Errno) {
 	userString, err := s.verify.GetAdminUserToken(ctx, token)
 	if err != nil {

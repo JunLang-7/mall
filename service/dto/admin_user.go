@@ -34,3 +34,7 @@ type UpdateUserStatusReq struct {
 	ID     int64 `json:"id"`
 	Status int32 `json:"status"`
 }
+
+type DeleteUserReq struct {
+	ID int64 `json:"id"`
+}

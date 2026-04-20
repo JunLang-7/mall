@@ -86,6 +86,8 @@ func (r *Router) adminRoute(root *gin.RouterGroup) {
 	adminRoot.POST("/v1/user/create", r.admin.CreateUser)
 	adminRoot.POST("/v1/user/update", r.admin.UpdateUser)
 	adminRoot.POST("/v1/user/update-status", r.admin.UpdateUserStatus)
+	adminRoot.POST("/v1/user/delete", r.admin.DeleteUser)
+
 
 	// 权限菜单
 	adminRoot.GET("/v1/perm/list", r.admin.PermissionList)

@@ -68,6 +68,21 @@ func (ctrl *Ctrl) UpdateUserStatus(ctx *gin.Context) {
 	api.WriteResp(ctx, nil, errno)
 }
 
+func (ctrl *Ctrl) DeleteUser(ctx *gin.Context) {
+	user := api.GetAdminUserFromCtx(ctx)
+	if user == nil {
+		api.WriteResp(ctx, nil, common.AuthErr)
+		return
+	}
+	req := &dto.DeleteUserReq{}
+	if err := ctx.BindJSON(req); err != nil {
+		api.WriteResp(ctx, nil, *common.ParamErr.WithMsg(err.Error()))
+		return
+	}
+	errno := ctrl.user.DeleteUser(ctx.Request.Context(), user, req)
+	api.WriteResp(ctx, nil, errno)
+}
+
 // GetAdminUserByToken 获取管理员用户信息
 func (ctrl *Ctrl) GetAdminUserByToken(ctx context.Context, token string) (*common.AdminUser, error) {
 	adminUser, errno := ctrl.user.GetAdminUserByToken(ctx, token)
