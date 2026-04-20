@@ -21,6 +21,7 @@ type IAdminUser interface {
 	UpdateUserStatus(ctx context.Context, user *do.UpdateUserStatus) error
 	DeleteUser(ctx context.Context, userId int64) error
 	UpdateUserLarkOpenID(ctx context.Context, userId int64, openID string) error
+	UpdateUserPassword(ctx context.Context, req *do.UpdateUserPassword) error
 }
 
 type Repo struct {
@@ -108,5 +109,11 @@ func (r *Repo) DeleteUser(ctx context.Context, userId int64) error {
 func (r *Repo) UpdateUserLarkOpenID(ctx context.Context, userId int64, openID string) error {
 	qs := query.Use(r.db).AdminUser
 	_, err := qs.WithContext(ctx).Where(qs.ID.Eq(userId)).Update(qs.LarkOpenID, openID)
+	return err
+}
+
+func (r *Repo) UpdateUserPassword(ctx context.Context, req *do.UpdateUserPassword) error {
+	qs := query.Use(r.db).AdminUser
+	_, err := qs.WithContext(ctx).Where(qs.ID.Eq(req.ID)).Update(qs.Password, req.Password)
 	return err
 }

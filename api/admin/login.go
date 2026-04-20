@@ -62,6 +62,17 @@ func (ctrl *Ctrl) MobileVerifyLogin(ctx *gin.Context) {
 	api.WriteResp(ctx, resp, errno)
 }
 
+// MobilePasswordReset 手机号重置密码
+func (ctrl *Ctrl) MobilePasswordReset(ctx *gin.Context) {
+	req := &dto.MobilePasswordResetReq{}
+	if err := ctx.BindJSON(req); err != nil {
+		api.WriteResp(ctx, nil, *common.ParamErr.WithErr(err))
+		return
+	}
+	errno := ctrl.user.MobilePasswordReset(ctx.Request.Context(), req)
+	api.WriteResp(ctx, nil, errno)
+}
+
 // LarkQrCodeLogin 飞书扫码登录
 func (ctrl *Ctrl) LarkQrCodeLogin(ctx *gin.Context) {
 	req := &dto.LarkQrCodeLoginReq{}

@@ -80,6 +80,7 @@ func (r *Router) adminRoute(root *gin.RouterGroup) {
 	adminRoot.POST("/v1/user/mobile/password_login", r.admin.MobilePasswordLogin)
 	adminRoot.POST("/v1/user/mobile/verify_login", r.admin.MobileVerifyLogin)
 	adminRoot.POST("/v1/user/lark/qrcode_login", r.admin.LarkQrCodeLogin)
+	adminRoot.POST("/v1/user/mobile/reset_password", r.admin.MobilePasswordReset)
 
 	// 管理员用户
 	adminRoot.GET("/v1/user/info", r.admin.GetUserInfo)
@@ -87,6 +88,7 @@ func (r *Router) adminRoute(root *gin.RouterGroup) {
 	adminRoot.POST("/v1/user/update", r.admin.UpdateUser)
 	adminRoot.POST("/v1/user/update-status", r.admin.UpdateUserStatus)
 	adminRoot.POST("/v1/user/delete", r.admin.DeleteUser)
+	adminRoot.POST("/v1/user/logout", r.admin.AdminUserLogout)
 
 	// 绑定解绑飞书账号、修改手机号等敏感操作
 	adminRoot.POST("/v1/user/lark_bind", r.admin.LarkBind)

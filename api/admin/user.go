@@ -118,3 +118,10 @@ func (ctrl *Ctrl) LarkUnbind(ctx *gin.Context) {
 	errno := ctrl.user.LarkUnbind(ctx.Request.Context(), user)
 	api.WriteResp(ctx, nil, errno)
 }
+
+// AdminUserLogout 管理员用户登出
+func (ctrl *Ctrl) AdminUserLogout(ctx *gin.Context) {
+	adminUser := api.GetAdminUserFromCtx(ctx)
+	errno := ctrl.user.AdminUserLogout(ctx.Request.Context(), adminUser)
+	api.WriteResp(ctx, nil, errno)
+}

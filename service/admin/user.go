@@ -127,3 +127,13 @@ func (s *Service) LarkUnbind(ctx context.Context, adminUser *common.AdminUser) c
 	}
 	return common.OK
 }
+
+// AdminUserLogout 管理员用户登出
+func (s *Service) AdminUserLogout(ctx context.Context, adminUser *common.AdminUser) common.Errno {
+	err := s.verify.CleanToken(ctx, adminUser.UserID)
+	if err != nil {
+		logger.Error("AdminUserLogout error", zap.Error(err), zap.Any("adminUser", adminUser))
+		return *common.RedisErr.WithErr(err)
+	}
+	return common.OK
+}

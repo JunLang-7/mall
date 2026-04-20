@@ -129,6 +129,37 @@ func (s *Service) MobilePasswordLogin(ctx context.Context, req *dto.MobileLoginR
 	return s.handleAdminLogin(ctx, adminUser)
 }
 
+// MobilePasswordReset 手机号重置密码
+func (s *Service) MobilePasswordReset(ctx context.Context, req *dto.MobilePasswordResetReq) common.Errno {
+	pass := s.checkSmsVerifyCode(ctx, req.Mobile, consts.AdminUserResetPasswordSmsCode, req.VerifyCode)
+	if !pass {
+		return common.InvalidSmsCodeErr
+	}
+	if req.Password != req.ConfirmPassword {
+		return common.ConfirmPasswordErr
+	}
+	adminUser, err := s.adminUser.GetUserByMobile(ctx, req.Mobile)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return common.AdminUserNotExistErr
+		}
+		logger.Error("MobilePasswordReset GetUserByMobile error", zap.Error(err), zap.String("mobile", req.Mobile))
+		return common.AdminUserNotExistErr
+	}
+	if adminUser == nil || adminUser.Status != consts.IsEnable {
+		return common.AdminUserNotExistErr
+	}
+	err = s.adminUser.UpdateUserPassword(ctx, &do.UpdateUserPassword{
+		ID:       adminUser.ID,
+		Password: req.ConfirmPassword,
+	})
+	if err != nil {
+		logger.Error("MobilePasswordReset UpdateUserPassword error", zap.Error(err), zap.String("mobile", req.Mobile))
+		return *common.DataBaseErr.WithErr(err)
+	}
+	return common.OK
+}
+
 // LarkQrCodeLogin 飞书扫码登录
 func (s *Service) LarkQrCodeLogin(ctx context.Context, req *dto.LarkQrCodeLoginReq) (*dto.LoginResp, common.Errno) {
 	// 获取飞书用户 access token
@@ -189,7 +220,7 @@ func (s *Service) handleAdminLogin(ctx context.Context, adminUser *model.AdminUs
 
 // processToken 处理登录成功后的 token 生成和存储
 func (s *Service) processToken(ctx context.Context, token string, adminUser *dto.AdminUserDto) error {
-	err := s.verify.SetAdminUserToken(ctx, token, gconv.String(adminUser), consts.ExpireAdminUserTokenTime)
+	err := s.verify.SetAdminUserToken(ctx, adminUser.UserID, token, gconv.String(adminUser), consts.ExpireAdminUserTokenTime)
 	if err != nil {
 		logger.Error("SetAdminUserToken error", zap.Error(err), zap.String("mobile", adminUser.Mobile))
 		return err

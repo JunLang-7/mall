@@ -54,3 +54,10 @@ type MobileVerifyCodeLoginReq struct {
 	Mobile     string `json:"mobile"`
 	VerifyCode string `json:"verify_code"`
 }
+
+type MobilePasswordResetReq struct {
+	Mobile          string `json:"mobile"`
+	Password        string `json:"password"`
+	ConfirmPassword string `json:"confirm_pwd"`
+	VerifyCode      string `json:"verify_code"`
+}

@@ -21,3 +21,8 @@ type UpdateUserStatus struct {
 	ID          int64 `json:"id"`
 	Status      int32 `json:"status"`
 }
+
+type UpdateUserPassword struct {
+	ID       int64  `json:"id"`
+	Password string `json:"password"`
+}

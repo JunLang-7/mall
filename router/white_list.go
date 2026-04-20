@@ -10,5 +10,5 @@ var AdminAuthWhiteList = map[string]bool{
 	"/admin/v1/user/mobile/verify_login":   true,
 	"/admin/v1/user/mobile/password_login": true,
 	"/admin/v1/user/lark/qrcode_login":     true,
-	"/admin/v1/user/password/reset":        true,
+	"/admin/v1/user/mobile/reset_password": true,
 }
