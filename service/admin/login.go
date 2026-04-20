@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/JunLang-7/mall/adaptor/repo/model"
 	"github.com/JunLang-7/mall/adaptor/rpc"
 	"github.com/JunLang-7/mall/common"
 	"github.com/JunLang-7/mall/consts"
@@ -30,6 +31,7 @@ func (s *Service) GetSmsCodeVerify(ctx context.Context, req *dto.GetSmsCodeVerif
 	}
 	// 生成短信验证码
 	verifyCode := tools.GenValidateCode(4)
+	// 发送飞书消息通知
 	tokenFunc := func(ctx context.Context, force bool) (string, error) {
 		token, errno := s.token.GetLarkTenantAccessToken(ctx, consts.LarkAppCode, force)
 		if !errno.IsOK() {
@@ -37,7 +39,6 @@ func (s *Service) GetSmsCodeVerify(ctx context.Context, req *dto.GetSmsCodeVerif
 		}
 		return token.Token, nil
 	}
-	// 发送飞书消息通知
 	err = s.lark.SendLarkMsg(ctx, tokenFunc, &do.SendLarkMsg{
 		AppCode: consts.LarkAppCode,
 		OpenID:  s.conf.BizConf.LarkGroupID,
@@ -49,7 +50,7 @@ func (s *Service) GetSmsCodeVerify(ctx context.Context, req *dto.GetSmsCodeVerif
 		return *common.ServerErr.WithErr(err)
 	}
 	// 将验证码存储到 Redis，并设置过期时间
-	err = s.verify.SetVerifyCode(ctx, req.Mobile, req.Scene, verifyCode, consts.ExpireVerifyCodeErrTime)
+	err = s.verify.SetVerifyCode(ctx, req.Mobile, consts.AdminUserMobileLoginSmsCode, verifyCode, consts.ExpireVerifyCodeErrTime)
 	if err != nil {
 		logger.Error("GetSmsCodeVerify SetVerifyCode error", zap.Error(err), zap.String("mobile", req.Mobile))
 		return *common.RedisErr.WithErr(err)
@@ -57,14 +58,33 @@ func (s *Service) GetSmsCodeVerify(ctx context.Context, req *dto.GetSmsCodeVerif
 	return common.OK
 }
 
-// processToken 处理登录成功后的 token 生成和存储
-func (s *Service) processToken(ctx context.Context, token string, adminUser *dto.AdminUserDto) error {
-	err := s.verify.SetAdminUserToken(ctx, token, gconv.String(adminUser), consts.ExpireAdminUserTokenTime)
+// checkSmsVerifyCode 校验短信验证码
+func (s *Service) checkSmsVerifyCode(ctx context.Context, mobile, scene, verifyCode string) bool {
+	getCode, err := s.verify.GetVerifyCode(ctx, mobile, scene)
 	if err != nil {
-		logger.Error("SetAdminUserToken error", zap.Error(err), zap.String("mobile", adminUser.Mobile))
-		return err
+		if errors.Is(err, redis.Nil) {
+			return false
+		}
+		logger.Error("checkSmsVerifyCode GetVerifyCode error", zap.Error(err), zap.String("mobile", mobile))
 	}
-	return nil
+	return getCode == verifyCode
+}
+
+// MobileVerifyLogin 手机号验证码登录
+func (s *Service) MobileVerifyLogin(ctx context.Context, req *dto.MobileVerifyCodeLoginReq) (*dto.LoginResp, common.Errno) {
+	pass := s.checkSmsVerifyCode(ctx, req.Mobile, consts.AdminUserMobileLoginSmsCode, req.VerifyCode)
+	if !pass {
+		return nil, common.InvalidSmsCodeErr
+	}
+	adminUser, err := s.adminUser.GetUserByMobile(ctx, req.Mobile)
+	if err != nil {
+		logger.Error("MobileVerifyLogin GetUserByMobile error", zap.Error(err), zap.String("mobile", req.Mobile))
+		return nil, *common.DataBaseErr.WithErr(err)
+	}
+	if adminUser == nil || adminUser.Status != consts.IsEnable {
+		return nil, common.AdminUserNotExistErr
+	}
+	return s.handleAdminLogin(ctx, adminUser)
 }
 
 // MobilePasswordLogin 手机号密码登录
@@ -105,29 +125,7 @@ func (s *Service) MobilePasswordLogin(ctx context.Context, req *dto.MobileLoginR
 	// 登录成功，删除密码错误计数
 	_ = s.verify.DeletePasswordErr(ctx, req.Mobile)
 
-	adminUserDto := dto.AdminUserDto{
-		UserID:     adminUser.ID,
-		Name:       adminUser.Name,
-		NickName:   adminUser.NickName,
-		Sex:        adminUser.Sex,
-		Status:     adminUser.Status,
-		Mobile:     adminUser.Mobile,
-		LarkOpenID: adminUser.LarkOpenID,
-		UpdateAt:   adminUser.UpdateAt.UnixMilli(),
-		CreateAt:   adminUser.CreateAt.UnixMilli(),
-	}
-	// NOTE: 可使用JWT
-	tokenUuid := tools.UUIDHex()
-	// 处理token
-	err = s.processToken(ctx, tokenUuid, &adminUserDto)
-	if err != nil {
-		logger.Error("MobilePasswordLogin processToken error", zap.Error(err), zap.String("mobile", req.Mobile))
-		return nil, *common.RedisErr.WithErr(err)
-	}
-	return &dto.LoginResp{
-		Token: tokenUuid,
-		User:  adminUserDto,
-	}, common.OK
+	return s.handleAdminLogin(ctx, adminUser)
 }
 
 // LarkQrCodeLogin 飞书扫码登录
@@ -153,6 +151,12 @@ func (s *Service) LarkQrCodeLogin(ctx context.Context, req *dto.LarkQrCodeLoginR
 	if adminUser == nil || adminUser.Status != consts.IsEnable {
 		return nil, common.AdminUserNotExistErr
 	}
+
+	return s.handleAdminLogin(ctx, adminUser)
+}
+
+// handleAdminLogin 处理管理员登录成功后的逻辑，包括生成 token 和构造响应数据
+func (s *Service) handleAdminLogin(ctx context.Context, adminUser *model.AdminUser) (*dto.LoginResp, common.Errno) {
 	adminUserDto := dto.AdminUserDto{
 		UserID:     adminUser.ID,
 		Name:       adminUser.Name,
@@ -167,13 +171,23 @@ func (s *Service) LarkQrCodeLogin(ctx context.Context, req *dto.LarkQrCodeLoginR
 	// NOTE: 可使用JWT
 	tokenUuid := tools.UUIDHex()
 	// 处理token
-	err = s.processToken(ctx, tokenUuid, &adminUserDto)
+	err := s.processToken(ctx, tokenUuid, &adminUserDto)
 	if err != nil {
-		logger.Error("LarkQrCodeLogin processToken error", zap.Error(err), zap.Any("req", req))
+		logger.Error("processToken error", zap.Error(err))
 		return nil, *common.RedisErr.WithErr(err)
 	}
 	return &dto.LoginResp{
 		Token: tokenUuid,
 		User:  adminUserDto,
 	}, common.OK
+}
+
+// processToken 处理登录成功后的 token 生成和存储
+func (s *Service) processToken(ctx context.Context, token string, adminUser *dto.AdminUserDto) error {
+	err := s.verify.SetAdminUserToken(ctx, token, gconv.String(adminUser), consts.ExpireAdminUserTokenTime)
+	if err != nil {
+		logger.Error("SetAdminUserToken error", zap.Error(err), zap.String("mobile", adminUser.Mobile))
+		return err
+	}
+	return nil
 }

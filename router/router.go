@@ -78,7 +78,7 @@ func (r *Router) adminRoute(root *gin.RouterGroup) {
 	adminRoot.POST("/v1/user/verify/captcha/check", r.admin.CheckSmsCodeCaptcha)
 	adminRoot.POST("/v1/user/verify/smscode", r.admin.GetSmsCodeVerify)
 	adminRoot.POST("/v1/user/mobile/password_login", r.admin.MobilePasswordLogin)
-	adminRoot.GET("/v1/user/mobile/verify_login", r.admin.MobileVerifyLogin)
+	adminRoot.POST("/v1/user/mobile/verify_login", r.admin.MobileVerifyLogin)
 	adminRoot.POST("/v1/user/lark/qrcode_login", r.admin.LarkQrCodeLogin)
 
 	adminRoot.GET("/v1/user/info", r.admin.GetUserInfo)

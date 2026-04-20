@@ -42,4 +42,5 @@ var (
 	InvalidCaptchaErr    = Errno{Code: 110002, Msg: "Captcha Verification Error"}
 	PasswordErrLimitErr  = Errno{Code: 110003, Msg: "Password Error Limit Exceeded, Please Try Again Later"}
 	AdminUserNotExistErr = Errno{Code: 110004, Msg: "Admin User Not Exist"}
+	InvalidSmsCodeErr    = Errno{Code: 110005, Msg: "Invalid SMS Code"}
 )

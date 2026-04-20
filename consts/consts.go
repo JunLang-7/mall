@@ -30,3 +30,11 @@ const (
 	WechatAppCode = 1000
 	LarkAppCode   = 2000
 )
+
+// 验证码场景
+const (
+	AddAdminUserPasswordSmsCode   = "add_admin_user_password"
+	AdminUserMobileLoginSmsCode   = "admin_user_mobile_login"
+	AdminUserResetPasswordSmsCode = "admin_user_reset_password"
+	AdminUserChangeMobileSmsCode  = "admin_user_change_mobile"
+)

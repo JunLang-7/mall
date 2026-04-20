@@ -49,3 +49,8 @@ type GetSmsCodeVerifyReq struct {
 	Mobile string `json:"mobile"`
 	Ticket string `json:"ticket"`
 }
+
+type MobileVerifyCodeLoginReq struct {
+	Mobile     string `json:"mobile"`
+	VerifyCode string `json:"verify_code"`
+}
