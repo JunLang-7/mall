@@ -29,6 +29,7 @@ services:
       - "2380:2380"
     environment:
       - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_DATA_DIR=/var/lib/etcd
       - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379 # 对外暴露的地址
       - ETCD_LISTEN_CLIENT_URLS=http://0.0.0.0:2379 # 监听地址
     volumes:
