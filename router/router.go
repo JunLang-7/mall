@@ -97,6 +97,9 @@ func (r *Router) adminRoute(root *gin.RouterGroup) {
 	// 权限菜单
 	adminRoot.GET("/v1/perm/list", r.admin.PermissionList)
 	adminRoot.GET("/v1/perm/my_perms", r.admin.MyPermissionList)
+	adminRoot.POST("/v1/perm/create", r.admin.CreatePermission)
+	adminRoot.POST("/v1/perm/update", r.admin.UpdatePermission)
+	adminRoot.POST("/v1/perm/delete", r.admin.DeletePermission)
 }
 
 func (r *Router) customerRoute(root *gin.RouterGroup) {
