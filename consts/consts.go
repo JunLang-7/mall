@@ -3,8 +3,8 @@ package consts
 import "time"
 
 const (
-	AdminTokenKey   = "admin_token"
-	UserTokenKey    = "user_token"
+	AdminTokenKey   = "token"
+	UserTokenKey    = "token"
 	CustomerUserKey = "customer_user"
 	AdminUserKey    = "admin_user"
 )

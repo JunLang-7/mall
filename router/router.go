@@ -81,10 +81,15 @@ func (r *Router) adminRoute(root *gin.RouterGroup) {
 	adminRoot.POST("/v1/user/mobile/verify_login", r.admin.MobileVerifyLogin)
 	adminRoot.POST("/v1/user/lark/qrcode_login", r.admin.LarkQrCodeLogin)
 
+	// 管理员用户
 	adminRoot.GET("/v1/user/info", r.admin.GetUserInfo)
 	adminRoot.POST("/v1/user/create", r.admin.CreateUser)
 	adminRoot.POST("/v1/user/update", r.admin.UpdateUser)
 	adminRoot.POST("/v1/user/update-status", r.admin.UpdateUserStatus)
+
+	// 权限菜单
+	adminRoot.GET("/v1/perm/list", r.admin.PermissionList)
+	adminRoot.GET("/v1/perm/my_perms", r.admin.MyPermissionList)
 }
 
 func (r *Router) customerRoute(root *gin.RouterGroup) {
