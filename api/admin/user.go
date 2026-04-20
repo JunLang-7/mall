@@ -91,3 +91,30 @@ func (ctrl *Ctrl) GetAdminUserByToken(ctx context.Context, token string) (*commo
 	}
 	return adminUser, nil
 }
+
+// LarkBind 绑定飞书账号
+func (ctrl *Ctrl) LarkBind(ctx *gin.Context) {
+	user := api.GetAdminUserFromCtx(ctx)
+	if user == nil {
+		api.WriteResp(ctx, nil, common.AuthErr)
+		return
+	}
+	req := &dto.LarkBindReq{}
+	if err := ctx.BindJSON(req); err != nil {
+		api.WriteResp(ctx, nil, *common.ParamErr.WithMsg(err.Error()))
+		return
+	}
+	errno := ctrl.user.LarkBind(ctx.Request.Context(), user, req)
+	api.WriteResp(ctx, nil, errno)
+}
+
+// LarkUnbind 解绑飞书账号
+func (ctrl *Ctrl) LarkUnbind(ctx *gin.Context) {
+	user := api.GetAdminUserFromCtx(ctx)
+	if user == nil {
+		api.WriteResp(ctx, nil, common.AuthErr)
+		return
+	}
+	errno := ctrl.user.LarkUnbind(ctx.Request.Context(), user)
+	api.WriteResp(ctx, nil, errno)
+}

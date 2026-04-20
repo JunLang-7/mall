@@ -88,6 +88,9 @@ func (r *Router) adminRoute(root *gin.RouterGroup) {
 	adminRoot.POST("/v1/user/update-status", r.admin.UpdateUserStatus)
 	adminRoot.POST("/v1/user/delete", r.admin.DeleteUser)
 
+	// 绑定解绑飞书账号、修改手机号等敏感操作
+	adminRoot.POST("/v1/user/lark_bind", r.admin.LarkBind)
+	adminRoot.POST("/v1/user/lark_unbind", r.admin.LarkUnbind)
 
 	// 权限菜单
 	adminRoot.GET("/v1/perm/list", r.admin.PermissionList)

@@ -38,3 +38,9 @@ type UpdateUserStatusReq struct {
 type DeleteUserReq struct {
 	ID int64 `json:"id"`
 }
+
+type LarkBindReq struct {
+	AppCode     int32  `json:"app_code"`
+	Code        string `json:"code"`
+	RedirectUrl string `json:"redirect_url"`
+}

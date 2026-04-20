@@ -95,3 +95,35 @@ func (s *Service) GetAdminUserByToken(ctx context.Context, token string) (*commo
 	}
 	return adminUser, common.OK
 }
+
+// LarkBind 绑定飞书账号
+func (s *Service) LarkBind(ctx context.Context, adminUser *common.AdminUser, req *dto.LarkBindReq) common.Errno {
+	// 获取飞书用户 access token
+	accessToken, errno := s.token.GetLarkUserAccessToken(ctx, req.AppCode, req.Code, req.RedirectUrl, "", false)
+	if !errno.IsOK() {
+		logger.Error("LarkQrCodeLogin GetLarkUserAccessToken error", zap.Any("req", req))
+		return common.ServerErr
+	}
+	// 通过 access token 获取飞书用户信息
+	larkUserInfo, err := s.lark.GetLarkUserInfo(ctx, accessToken.Token)
+	if err != nil {
+		logger.Error("LarkBind GetLarkUserInfo error", zap.Error(err), zap.Any("req", req))
+		return *common.ServerErr.WithErr(err)
+	}
+	err = s.adminUser.UpdateUserLarkOpenID(ctx, adminUser.UserID, larkUserInfo.OpenID)
+	if err != nil {
+		logger.Error("LarkBind error", zap.Error(err), zap.Any("req", adminUser))
+		return *common.DataBaseErr.WithErr(err)
+	}
+	return common.OK
+}
+
+// LarkUnbind 解绑飞书账号
+func (s *Service) LarkUnbind(ctx context.Context, adminUser *common.AdminUser) common.Errno {
+	err := s.adminUser.UpdateUserLarkOpenID(ctx, adminUser.UserID, "")
+	if err != nil {
+		logger.Error("LarkUnbind error", zap.Error(err), zap.Any("adminUser", adminUser))
+		return *common.DataBaseErr.WithErr(err)
+	}
+	return common.OK
+}

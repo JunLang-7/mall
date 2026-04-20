@@ -16,6 +16,7 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/gogf/gf/util/gconv"
 	"go.uber.org/zap"
+	"gorm.io/gorm"
 )
 
 // GetSmsCodeVerify 获取短信验证码
@@ -145,6 +146,10 @@ func (s *Service) LarkQrCodeLogin(ctx context.Context, req *dto.LarkQrCodeLoginR
 	// 根据飞书用户信息中的 OpenID 获取对应的管理员用户信息
 	adminUser, err := s.adminUser.GetUserByLarkOpenID(ctx, larkUserInfo.OpenID)
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			logger.Error("LarkQrCodeLogin GetUserByLarkOpenID error", zap.Error(err), zap.Any("req", req))
+			return nil, common.InvalidLarkOpenIDErr
+		}
 		logger.Error("LarkQrCodeLogin GetUserByLarkOpenID error", zap.Error(err), zap.Any("req", req))
 		return nil, *common.DataBaseErr.WithErr(err)
 	}
