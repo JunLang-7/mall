@@ -8,6 +8,7 @@ require (
 	github.com/goccy/go-yaml v1.19.2
 	github.com/gogf/gf v1.16.9
 	github.com/google/uuid v1.6.0
+	github.com/panjf2000/ants/v2 v2.12.0
 	github.com/samber/lo v1.53.0
 	github.com/spf13/viper v1.21.0
 	github.com/spf13/viper/remote v1.21.0
