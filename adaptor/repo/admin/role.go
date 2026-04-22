@@ -21,6 +21,7 @@ type IRole interface {
 	GetRolePerms(ctx context.Context, roleIDs []int64) (map[int64][]int64, error)
 	ListRoles(ctx context.Context, req *do.ListRole) ([]*model.Role, int64, error)
 	GetRoleByUserID(ctx context.Context, userId int64) ([]*model.AdminUserRole, error)
+	GetRoleByUserIDs(ctx context.Context, userIDs []int64) (map[int64][]*model.AdminUserRole, error)
 	GetRoleByIDs(ctx context.Context, roleIDs []int64) (map[int64]*model.Role, error)
 }
 
@@ -120,6 +121,18 @@ func (r *Role) ListRoles(ctx context.Context, req *do.ListRole) ([]*model.Role, 
 func (r *Role) GetRoleByUserID(ctx context.Context, userId int64) ([]*model.AdminUserRole, error) {
 	qs := query.Use(r.db).AdminUserRole
 	return qs.WithContext(ctx).Where(qs.AdminUserID.Eq(userId)).Find()
+}
+
+func (r *Role) GetRoleByUserIDs(ctx context.Context, userIDs []int64) (map[int64][]*model.AdminUserRole, error) {
+	qs := query.Use(r.db).AdminUserRole
+	list, err := qs.WithContext(ctx).Where(qs.AdminUserID.In(userIDs...)).Find()
+	if err != nil {
+		return nil, err
+	}
+	roleMap := lo.GroupBy(list, func(item *model.AdminUserRole) int64 {
+		return item.AdminUserID
+	})
+	return roleMap, nil
 }
 
 func (r *Role) GetRoleByIDs(ctx context.Context, roleIDs []int64) (map[int64]*model.Role, error) {
