@@ -65,20 +65,6 @@ func (ctrl *Ctrl) UpdateUser(ctx *gin.Context) {
 	api.WriteResp(ctx, nil, errno)
 }
 
-func (ctrl *Ctrl) UpdateUserStatus(ctx *gin.Context) {
-	user := api.GetAdminUserFromCtx(ctx)
-	if user == nil {
-		api.WriteResp(ctx, nil, common.AuthErr)
-		return
-	}
-	req := &dto.UpdateUserStatusReq{}
-	if err := ctx.BindJSON(req); err != nil {
-		api.WriteResp(ctx, nil, *common.ParamErr.WithMsg(err.Error()))
-	}
-	errno := ctrl.user.UpdateUserStatus(ctx.Request.Context(), user, req)
-	api.WriteResp(ctx, nil, errno)
-}
-
 func (ctrl *Ctrl) DeleteUser(ctx *gin.Context) {
 	user := api.GetAdminUserFromCtx(ctx)
 	if user == nil {

@@ -133,6 +133,7 @@ func (s *Service) CreateUser(ctx context.Context, adminUser *common.AdminUser, r
 		NickName:    req.NickName,
 		Mobile:      req.Mobile,
 		Sex:         req.Sex,
+		RoleIDs:     req.RoleIDs,
 	})
 	if err != nil {
 		logger.Error("CreateUser error", zap.Error(err), zap.Any("req", req))
@@ -148,22 +149,11 @@ func (s *Service) UpdateUser(ctx context.Context, adminUser *common.AdminUser, r
 		Name:        req.Name,
 		NickName:    req.NickName,
 		Sex:         req.Sex,
+		Status:      req.Status,
+		RoleIDs:     req.RoleIDs,
 	})
 	if err != nil {
 		logger.Error("UpdateUser error", zap.Error(err), zap.Any("req", req))
-		return *common.DataBaseErr.WithErr(err)
-	}
-	return common.OK
-}
-
-func (s *Service) UpdateUserStatus(ctx context.Context, adminUser *common.AdminUser, req *dto.UpdateUserStatusReq) common.Errno {
-	err := s.adminUser.UpdateUserStatus(ctx, &do.UpdateUserStatus{
-		AdminUserID: adminUser.UserID,
-		ID:          req.ID,
-		Status:      req.Status,
-	})
-	if err != nil {
-		logger.Error("UpdateUserStatus error", zap.Error(err), zap.Any("req", req))
 		return *common.DataBaseErr.WithErr(err)
 	}
 	return common.OK

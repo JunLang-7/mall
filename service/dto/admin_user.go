@@ -19,22 +19,20 @@ type GetUserInfoReq struct {
 }
 
 type CreateUserReq struct {
-	Name     string `json:"name"`
-	NickName string `json:"nick_name"`
-	Mobile   string `json:"mobile"`
-	Sex      int32  `json:"sex"`
+	Name     string  `json:"name"`
+	NickName string  `json:"nick_name"`
+	Mobile   string  `json:"mobile"`
+	Sex      int32   `json:"sex"`
+	RoleIDs  []int64 `json:"role_ids"`
 }
 
 type UpdateUserReq struct {
-	ID       int64  `json:"id"`
-	Name     string `json:"name"`
-	NickName string `json:"nick_name"`
-	Sex      int32  `json:"sex"`
-}
-
-type UpdateUserStatusReq struct {
-	ID     int64 `json:"id"`
-	Status int32 `json:"status"`
+	ID       int64   `json:"id"`
+	Name     string  `json:"name"`
+	NickName string  `json:"nick_name"`
+	Sex      int32   `json:"sex"`
+	Status   int32   `json:"status"`
+	RoleIDs  []int64 `json:"role_ids"`
 }
 
 type DeleteUserReq struct {

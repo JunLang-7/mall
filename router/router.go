@@ -87,7 +87,6 @@ func (r *Router) adminRoute(root *gin.RouterGroup) {
 	adminRoot.GET("/v1/user/list", r.admin.ListUsers)
 	adminRoot.POST("/v1/user/create", r.admin.CreateUser)
 	adminRoot.POST("/v1/user/update", r.admin.UpdateUser)
-	adminRoot.POST("/v1/user/update-status", r.admin.UpdateUserStatus)
 	adminRoot.POST("/v1/user/delete", r.admin.DeleteUser)
 	adminRoot.POST("/v1/user/logout", r.admin.AdminUserLogout)
 
