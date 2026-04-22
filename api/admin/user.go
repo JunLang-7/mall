@@ -26,6 +26,17 @@ func (ctrl *Ctrl) GetUserInfo(ctx *gin.Context) {
 	api.WriteResp(ctx, resp, errno)
 }
 
+func (ctrl *Ctrl) ListUsers(ctx *gin.Context) {
+	user := api.GetAdminUserFromCtx(ctx)
+	if user == nil {
+		api.WriteResp(ctx, nil, common.AuthErr)
+		return
+	}
+	req := &dto.ListUsersReq{}
+	resp, errno := ctrl.user.ListUsers(ctx.Request.Context(), user, req)
+	api.WriteResp(ctx, resp, errno)
+}
+
 func (ctrl *Ctrl) CreateUser(ctx *gin.Context) {
 	user := api.GetAdminUserFromCtx(ctx)
 	if user == nil {

@@ -4,17 +4,19 @@ import (
 	"context"
 	"errors"
 
+	"github.com/JunLang-7/mall/adaptor/repo/model"
 	"github.com/JunLang-7/mall/common"
 	"github.com/JunLang-7/mall/service/do"
 	"github.com/JunLang-7/mall/service/dto"
 	"github.com/JunLang-7/mall/utils/logger"
 	"github.com/go-redis/redis"
 	"github.com/gogf/gf/util/gconv"
+	"github.com/samber/lo"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
-func (s *Service) GetUserInfo(ctx context.Context, adminUser *common.AdminUser, userID int64) (*dto.AdminUserDto, common.Errno) {
+func (s *Service) GetUserInfo(ctx context.Context, adminUser *common.AdminUser, userID int64) (*dto.AdminUserWithRoleDto, common.Errno) {
 	user, err := s.adminUser.GetUserInfo(ctx, userID)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -23,7 +25,105 @@ func (s *Service) GetUserInfo(ctx context.Context, adminUser *common.AdminUser, 
 		logger.Error("GetUserInfo error", zap.Error(err), zap.Int64("request_user_id", userID), zap.Any("admin_user", adminUser))
 		return nil, *common.DataBaseErr.WithErr(err)
 	}
-	return &dto.AdminUserDto{UserID: user.ID, Name: user.Name}, common.OK
+	userRoleMap, err := s.adminRole.GetRoleByUserIDs(ctx, []int64{user.ID})
+	if err != nil {
+		logger.Error("GetUserInfo GetRoleByUserID error", zap.Error(err), zap.Any("userID", userID))
+		return nil, *common.DataBaseErr.WithErr(err)
+	}
+	roleIDs := make([]int64, 0)
+	for _, vList := range userRoleMap {
+		for _, v := range vList {
+			roleIDs = append(roleIDs, v.RoleID)
+		}
+	}
+	roleMap, err := s.adminRole.GetRoleByIDs(ctx, lo.Uniq(roleIDs))
+	if err != nil {
+		logger.Error("GetUserInfo GetRoleByUserIDs error", zap.Error(err), zap.Any("user", adminUser))
+		return nil, *common.DataBaseErr.WithErr(err)
+	}
+	roles := make([]*common.IDName, 0)
+	for _, roleID := range roleIDs {
+		roles = append(roles, &common.IDName{
+			ID:   roleMap[roleID].ID,
+			Name: roleMap[roleID].Name,
+		})
+	}
+	return &dto.AdminUserWithRoleDto{
+		AdminUserDto: dto.AdminUserDto{
+			UserID:     user.ID,
+			Name:       user.Name,
+			NickName:   user.NickName,
+			Sex:        user.Sex,
+			Status:     user.Status,
+			Mobile:     user.Mobile,
+			LarkOpenID: user.LarkOpenID,
+			UpdateAt:   user.UpdateAt.UnixMilli(),
+			CreateAt:   user.CreateAt.UnixMilli(),
+		},
+		Roles: roles,
+	}, common.OK
+}
+
+func (s *Service) ListUsers(ctx context.Context, adminUser *common.AdminUser, req *dto.ListUsersReq) (*dto.ListUsersResp, common.Errno) {
+	userList, total, err := s.adminUser.ListUsers(ctx, &do.ListUsers{
+		Name:   req.Name,
+		Mobile: req.Mobile,
+		RoleID: req.RoleID,
+		Status: req.Status,
+		Pager:  req.Pager,
+	})
+	if err != nil {
+		logger.Error("ListUsers error", zap.Error(err), zap.Any("admin_user", adminUser), zap.Any("req", req))
+		return nil, *common.DataBaseErr.WithErr(err)
+	}
+	userIDs := make([]int64, 0)
+	lo.ForEach(userList, func(item *model.AdminUser, index int) {
+		userIDs = append(userIDs, item.ID)
+	})
+
+	userRoleMap, err := s.adminRole.GetRoleByUserIDs(ctx, userIDs)
+	if err != nil {
+		logger.Error("ListUsers GetRoleByUserIDs error", zap.Error(err), zap.Any("admin_user", adminUser), zap.Any("req", req))
+		return nil, *common.DataBaseErr.WithErr(err)
+	}
+	roleIDs := make([]int64, 0)
+	for _, vList := range userRoleMap {
+		for _, v := range vList {
+			roleIDs = append(roleIDs, v.RoleID)
+		}
+	}
+	roleMap, err := s.adminRole.GetRoleByIDs(ctx, lo.Uniq(roleIDs))
+	if err != nil {
+		logger.Error("ListUsers GetRoleByIDs error", zap.Error(err), zap.Any("admin_user", adminUser), zap.Any("req", req))
+		return nil, *common.DataBaseErr.WithErr(err)
+	}
+	retList := make([]*dto.AdminUserWithRoleDto, 0, len(userList))
+	lo.ForEach(userList, func(user *model.AdminUser, index int) {
+		retList = append(retList, &dto.AdminUserWithRoleDto{
+			AdminUserDto: dto.AdminUserDto{
+				UserID:     user.ID,
+				Name:       user.Name,
+				NickName:   user.NickName,
+				Sex:        user.Sex,
+				Status:     user.Status,
+				Mobile:     user.Mobile,
+				LarkOpenID: user.LarkOpenID,
+				UpdateAt:   user.UpdateAt.UnixMilli(),
+				CreateAt:   user.CreateAt.UnixMilli(),
+			},
+			Roles: lo.Map(userRoleMap[user.ID], func(item *model.AdminUserRole, index int) *common.IDName {
+				return &common.IDName{
+					ID:   roleMap[item.RoleID].ID,
+					Name: roleMap[item.RoleID].Name,
+				}
+			}),
+		})
+	})
+	return &dto.ListUsersResp{
+		Pager: req.Pager,
+		Total: total,
+		List:  retList,
+	}, common.OK
 }
 
 func (s *Service) CreateUser(ctx context.Context, adminUser *common.AdminUser, req *dto.CreateUserReq) (int64, common.Errno) {

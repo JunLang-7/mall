@@ -1,5 +1,7 @@
 package do
 
+import "github.com/JunLang-7/mall/common"
+
 type CreateUser struct {
 	AdminUserID int64  `json:"admin_user_id"`
 	Name        string `json:"name"`
@@ -25,4 +27,12 @@ type UpdateUserStatus struct {
 type UpdateUserPassword struct {
 	ID       int64  `json:"id"`
 	Password string `json:"password"`
+}
+
+type ListUsers struct {
+	Name   string       `json:"name"`
+	Mobile string       `json:"mobile"`
+	RoleID int64        `json:"role_id"`
+	Status int32        `json:"status"`
+	Pager  common.Pager `json:"pager"`
 }

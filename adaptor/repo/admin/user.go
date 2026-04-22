@@ -14,6 +14,7 @@ import (
 
 type IAdminUser interface {
 	GetUserInfo(ctx context.Context, userId int64) (*model.AdminUser, error)
+	ListUsers(ctx context.Context, req *do.ListUsers) ([]*model.AdminUser, int64, error)
 	GetUserByMobile(ctx context.Context, mobile string) (*model.AdminUser, error)
 	GetUserByLarkOpenID(ctx context.Context, openID string) (*model.AdminUser, error)
 	CreateUser(ctx context.Context, user *do.CreateUser) (int64, error)
@@ -39,6 +40,12 @@ func NewRepo(db *gorm.DB, rds *redis.Client) *Repo {
 func (r *Repo) GetUserInfo(ctx context.Context, userId int64) (*model.AdminUser, error) {
 	qs := query.Use(r.db).AdminUser
 	return qs.WithContext(ctx).Where(qs.ID.Eq(userId)).First()
+}
+
+func (r *Repo) ListUsers(ctx context.Context, req *do.ListUsers) ([]*model.AdminUser, int64, error) {
+	qs := query.Use(r.db).AdminUser
+	lists, total, err := qs.WithContext(ctx).Order(qs.CreateAt.Asc()).FindByPage(req.Pager.GetOffset(), req.Pager.Limit)
+	return lists, total, err
 }
 
 func (r *Repo) GetUserByMobile(ctx context.Context, mobile string) (*model.AdminUser, error) {

@@ -1,5 +1,7 @@
 package dto
 
+import "github.com/JunLang-7/mall/common"
+
 type AdminUserDto struct {
 	UserID     int64  `json:"user_id"`
 	Name       string `json:"name"`
@@ -37,6 +39,25 @@ type UpdateUserStatusReq struct {
 
 type DeleteUserReq struct {
 	ID int64 `json:"id"`
+}
+
+type ListUsersReq struct {
+	common.Pager
+	Name   string `url:"name,omitempty"`
+	Mobile string `url:"mobile,omitempty"`
+	RoleID int64  `url:"role_id,omitempty"`
+	Status int32  `url:"status,omitempty"`
+}
+
+type ListUsersResp struct {
+	common.Pager
+	Total int64                   `json:"total"`
+	List  []*AdminUserWithRoleDto `json:"list"`
+}
+
+type AdminUserWithRoleDto struct {
+	AdminUserDto
+	Roles []*common.IDName `json:"roles"`
 }
 
 type LarkBindReq struct {

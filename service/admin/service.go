@@ -18,6 +18,7 @@ type Service struct {
 	captcha   slide.Captcha
 	token     *token.Service
 	lark      rpc.ILark
+	adminRole admin.IRole
 }
 
 func NewService(adaptor adaptor.IAdaptor) *Service {
@@ -28,5 +29,6 @@ func NewService(adaptor adaptor.IAdaptor) *Service {
 		captcha:   captcha.NewSlideCaptcha(),
 		token:     token.NewService(adaptor),
 		lark:      rpc.NewLark(adaptor),
+		adminRole: admin.NewAdminRole(adaptor),
 	}
 }
