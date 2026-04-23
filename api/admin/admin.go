@@ -3,6 +3,7 @@ package admin
 import (
 	"github.com/JunLang-7/mall/adaptor"
 	"github.com/JunLang-7/mall/service/admin"
+	"github.com/JunLang-7/mall/service/goods"
 	"github.com/JunLang-7/mall/service/perm"
 	"github.com/JunLang-7/mall/service/role"
 )
@@ -12,6 +13,7 @@ type Ctrl struct {
 	user    *admin.Service
 	perm    *perm.Service
 	role    *role.Service
+	lesson  *goods.Service
 }
 
 func NewCtrl(adaptor adaptor.IAdaptor) *Ctrl {
@@ -20,5 +22,6 @@ func NewCtrl(adaptor adaptor.IAdaptor) *Ctrl {
 		user:    admin.NewService(adaptor),
 		perm:    perm.NewService(adaptor),
 		role:    role.NewService(adaptor),
+		lesson:  goods.NewService(adaptor),
 	}
 }

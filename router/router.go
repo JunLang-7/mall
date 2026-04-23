@@ -107,6 +107,14 @@ func (r *Router) adminRoute(root *gin.RouterGroup) {
 	adminRoot.GET("v1/role/list", r.admin.ListRole)
 	adminRoot.GET("/v1/role/my_roles", r.admin.MyRoles)
 	adminRoot.POST("/v1/role/perm/sets", r.admin.SetRolePerms)
+
+	// 录播分类管理
+	adminRoot.POST("/v1/lesson/category/create", r.admin.CreateCategory)
+	adminRoot.POST("/v1/lesson/category/update", r.admin.UpdateCategory)
+	adminRoot.POST("/v1/lesson/category/delete", r.admin.DeleteCategory)
+	adminRoot.GET("/v1/lesson/category/list", r.admin.ListCategory)
+	adminRoot.POST("/v1/lesson/category/update_sort", r.admin.CategorySorts)
+	
 }
 
 func (r *Router) customerRoute(root *gin.RouterGroup) {
