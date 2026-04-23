@@ -24,6 +24,8 @@ func Use(db *gorm.DB, opts ...gen.DOOption) *Query {
 		CourseCatalog:      newCourseCatalog(db, opts...),
 		CourseGood:         newCourseGood(db, opts...),
 		CourseLesson:       newCourseLesson(db, opts...),
+		Lesson:             newLesson(db, opts...),
+		LessonCategory:     newLessonCategory(db, opts...),
 		MobileUser:         newMobileUser(db, opts...),
 		Order:              newOrder(db, opts...),
 		OrderItem:          newOrderItem(db, opts...),
@@ -47,6 +49,8 @@ type Query struct {
 	CourseCatalog      courseCatalog
 	CourseGood         courseGood
 	CourseLesson       courseLesson
+	Lesson             lesson
+	LessonCategory     lessonCategory
 	MobileUser         mobileUser
 	Order              order
 	OrderItem          orderItem
@@ -71,6 +75,8 @@ func (q *Query) clone(db *gorm.DB) *Query {
 		CourseCatalog:      q.CourseCatalog.clone(db),
 		CourseGood:         q.CourseGood.clone(db),
 		CourseLesson:       q.CourseLesson.clone(db),
+		Lesson:             q.Lesson.clone(db),
+		LessonCategory:     q.LessonCategory.clone(db),
 		MobileUser:         q.MobileUser.clone(db),
 		Order:              q.Order.clone(db),
 		OrderItem:          q.OrderItem.clone(db),
@@ -102,6 +108,8 @@ func (q *Query) ReplaceDB(db *gorm.DB) *Query {
 		CourseCatalog:      q.CourseCatalog.replaceDB(db),
 		CourseGood:         q.CourseGood.replaceDB(db),
 		CourseLesson:       q.CourseLesson.replaceDB(db),
+		Lesson:             q.Lesson.replaceDB(db),
+		LessonCategory:     q.LessonCategory.replaceDB(db),
 		MobileUser:         q.MobileUser.replaceDB(db),
 		Order:              q.Order.replaceDB(db),
 		OrderItem:          q.OrderItem.replaceDB(db),
@@ -123,6 +131,8 @@ type queryCtx struct {
 	CourseCatalog      *courseCatalogDo
 	CourseGood         *courseGoodDo
 	CourseLesson       *courseLessonDo
+	Lesson             *lessonDo
+	LessonCategory     *lessonCategoryDo
 	MobileUser         *mobileUserDo
 	Order              *orderDo
 	OrderItem          *orderItemDo
@@ -144,6 +154,8 @@ func (q *Query) WithContext(ctx context.Context) *queryCtx {
 		CourseCatalog:      q.CourseCatalog.WithContext(ctx),
 		CourseGood:         q.CourseGood.WithContext(ctx),
 		CourseLesson:       q.CourseLesson.WithContext(ctx),
+		Lesson:             q.Lesson.WithContext(ctx),
+		LessonCategory:     q.LessonCategory.WithContext(ctx),
 		MobileUser:         q.MobileUser.WithContext(ctx),
 		Order:              q.Order.WithContext(ctx),
 		OrderItem:          q.OrderItem.WithContext(ctx),

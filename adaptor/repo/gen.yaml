@@ -10,6 +10,8 @@ database:
     - course_catalog
     - course_goods
     - course_lessons
+    - lessons
+    - lesson_category
     - mobile_user
     - order_items
     - orders
