@@ -24,7 +24,7 @@ type Service struct {
 func NewService(adaptor adaptor.IAdaptor) *Service {
 	return &Service{
 		conf:      adaptor.GetConf(),
-		adminUser: admin.NewRepo(adaptor.GetDB(), adaptor.GetRedis()),
+		adminUser: admin.NewRepo(adaptor),
 		verify:    redis.NewVerify(adaptor),
 		captcha:   captcha.NewSlideCaptcha(),
 		token:     token.NewService(adaptor),

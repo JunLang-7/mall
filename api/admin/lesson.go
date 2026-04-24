@@ -60,5 +60,25 @@ func (ctrl *Ctrl) CategorySorts(ctx *gin.Context) {
 	}
 	errno := ctrl.lesson.CategorySort(ctx.Request.Context(), req)
 	api.WriteResp(ctx, nil, errno)
+}
 
+func (ctrl *Ctrl) CreateLesson(ctx *gin.Context) {
+	user := api.GetAdminUserFromCtx(ctx)
+	req := &dto.CreateLessonReq{}
+	if err := ctx.BindJSON(req); err != nil {
+		api.WriteResp(ctx, nil, *common.ParamErr.WithErr(err))
+		return
+	}
+	id, errno := ctrl.lesson.CreateLesson(ctx.Request.Context(), user, req)
+	api.WriteResp(ctx, id, errno)
+}
+
+func (ctrl *Ctrl) ListLesson(ctx *gin.Context) {
+	req := &dto.ListLessonReq{}
+	if err := ctx.BindJSON(req); err != nil {
+		api.WriteResp(ctx, nil, *common.ParamErr.WithErr(err))
+		return
+	}
+	resp, errno := ctrl.lesson.ListLesson(ctx.Request.Context(), req)
+	api.WriteResp(ctx, resp, errno)
 }

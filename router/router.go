@@ -116,10 +116,10 @@ func (r *Router) adminRoute(root *gin.RouterGroup) {
 	adminRoot.POST("/v1/lesson/category/update_sort", r.admin.CategorySorts)
 
 	// 录播课时管理
-	//adminRoot.POST("/v1/lesson/create", r.admin.CreateLesson)
+	adminRoot.POST("/v1/lesson/create", r.admin.CreateLesson)
 	//adminRoot.POST("/v1/lesson/update", r.admin.UpdateLesson)
 	//adminRoot.POST("/v1/lesson/update_status", r.admin.UpdateLessonStatus)
-	//adminRoot.GET("/v1/lesson/list", r.admin.ListLesson)
+	adminRoot.POST("/v1/lesson/list", r.admin.ListLesson)
 
 	// 获取对象存储临时密钥
 	adminRoot.POST("/v1/storage/get_temp_secret", r.admin.GetTempSecret)

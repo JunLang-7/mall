@@ -30,3 +30,55 @@ type UpdateCategorySort []UpdateSort
 type ListCategory struct {
 	common.Pager
 }
+
+type LessonChapter struct {
+	Name          string
+	BeginPosition int64
+	EndPosition   int64
+}
+
+type Attachment struct {
+	FileKey    string
+	OriginName string
+}
+
+type CreateLesson struct {
+	UserID        int64
+	Name          string
+	Detail        string
+	CategoryID    int64
+	VideoKey      string
+	VideoFileName string
+	Attachments   []Attachment
+	Duration      int32
+	Chapters      []LessonChapter
+}
+
+type UpdateLesson struct {
+	UserID      int64
+	ID          int64
+	Intro       string
+	CategoryID  int64
+	VideoKey    string
+	Attachments []string
+	Duration    int32
+	Chapters    []LessonChapter
+}
+
+type UpdateLessonStatus struct {
+	UserID int64
+	ID     int64
+	Status int32
+}
+
+type ListLesson struct {
+	common.Pager
+	ID              int64
+	NameKw          string
+	CategoryIDs     []int64
+	Status          int32
+	StartCreateTime int64
+	EndCreateTime   int64
+	StartUpdateTime int64
+	EndUpdateTime   int64
+}

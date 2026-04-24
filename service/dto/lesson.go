@@ -37,3 +37,77 @@ type CategoryDto struct {
 	ParentID int64  `json:"parent_id"`
 	Level    int32  `json:"level"`
 }
+
+type LessonChapter struct {
+	Name          string `json:"name"`
+	BeginPosition int64  `json:"begin_position"`
+	EndPosition   int64  `json:"end_position"`
+}
+
+type Attachment struct {
+	FileKey    string `json:"file_key"`
+	OriginName string `json:"origin_name"`
+}
+type CreateLessonReq struct {
+	Name          string          `json:"name"`
+	Detail        string          `json:"detail"`
+	CategoryID    int64           `json:"category_id"`
+	VideoKey      string          `json:"video_key"`
+	VideoFileName string          `json:"video_file_name"`
+	Attachments   []Attachment    `json:"attachments"`
+	Duration      int32           `json:"duration"`
+	Chapters      []LessonChapter `json:"chapters"`
+}
+
+type UpdateLessonReq struct {
+	ID          int64           `json:"id"`
+	Intro       string          `json:"intro"`
+	CategoryID  int64           `json:"category_id"`
+	VideoKey    string          `json:"video_key"`
+	Attachments []Attachment    `json:"attachments"`
+	Duration    int32           `json:"duration"`
+	Chapters    []LessonChapter `json:"chapters"`
+}
+
+type UpdateLessonStatusReq struct {
+	ID     int64 `json:"id"`
+	Status int32 `json:"status"`
+}
+
+type ListLessonReq struct {
+	common.Pager
+	ID              int64  `json:"id"`
+	OnView          bool   `json:"on_view"`
+	NameKw          string `json:"name_kw"`
+	CategoryID      int64  `json:"category_id"`
+	Status          int32  `json:"status"`
+	StartCreateTime int64  `json:"start_create_time"`
+	EndCreateTime   int64  `json:"end_create_time"`
+	BeginUpdateTime int64  `json:"begin_update_time"`
+	EndUpdateTime   int64  `json:"end_update_time"`
+}
+
+type LessonDto struct {
+	common.CreateUpdateName
+	ID            int64           `json:"id"`
+	Name          string          `json:"name"`
+	Detail        string          `json:"detail"`
+	CategoryID    int64           `json:"category_id"`
+	CategoryName  string          `json:"category_name"`
+	VideoKey      string          `json:"video_key"`
+	VideoFileName string          `json:"video_file_name"`
+	Attachments   []Attachment    `json:"attachments"`
+	Duration      int32           `json:"duration"`
+	Chapters      []LessonChapter `json:"chapters"`
+	Status        int32           `json:"status"`
+	CreateBy      int64           `json:"create_by"`
+	UpdateBy      int64           `json:"update_by"`
+	CreateAt      int64           `json:"create_at"`
+	UpdateAt      int64           `json:"update_at"`
+}
+
+type ListLessonResp struct {
+	List  []*LessonDto `json:"list"`
+	Total int64        `json:"total"`
+	common.Pager
+}

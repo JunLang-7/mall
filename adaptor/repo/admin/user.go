@@ -4,11 +4,13 @@ import (
 	"context"
 	"time"
 
+	"github.com/JunLang-7/mall/adaptor"
 	"github.com/JunLang-7/mall/adaptor/repo/model"
 	"github.com/JunLang-7/mall/adaptor/repo/query"
 	"github.com/JunLang-7/mall/consts"
 	"github.com/JunLang-7/mall/service/do"
 	"github.com/go-redis/redis"
+	"github.com/samber/lo"
 	"gorm.io/gorm"
 )
 
@@ -22,6 +24,7 @@ type IAdminUser interface {
 	DeleteUser(ctx context.Context, userId int64) error
 	UpdateUserLarkOpenID(ctx context.Context, userId int64, openID string) error
 	UpdateUserPassword(ctx context.Context, req *do.UpdateUserPassword) error
+	GetUserNameMap(ctx context.Context, ids []int64) (map[int64]string, error)
 }
 
 type Repo struct {
@@ -29,10 +32,10 @@ type Repo struct {
 	rds *redis.Client
 }
 
-func NewRepo(db *gorm.DB, rds *redis.Client) *Repo {
+func NewRepo(adaptor adaptor.IAdaptor) *Repo {
 	return &Repo{
-		db:  db,
-		rds: rds,
+		db:  adaptor.GetDB(),
+		rds: adaptor.GetRedis(),
 	}
 }
 
@@ -141,4 +144,15 @@ func (r *Repo) UpdateUserPassword(ctx context.Context, req *do.UpdateUserPasswor
 	qs := query.Use(r.db).AdminUser
 	_, err := qs.WithContext(ctx).Where(qs.ID.Eq(req.ID)).Update(qs.Password, req.Password)
 	return err
+}
+
+func (r *Repo) GetUserNameMap(ctx context.Context, ids []int64) (map[int64]string, error) {
+	qs := query.Use(r.db).AdminUser
+	list, err := qs.WithContext(ctx).Select(qs.ID, qs.Name).Where(qs.ID.In(ids...)).Find()
+	if err != nil {
+		return nil, err
+	}
+	return lo.SliceToMap(list, func(item *model.AdminUser) (int64, string) {
+		return item.ID, item.Name
+	}), nil
 }
