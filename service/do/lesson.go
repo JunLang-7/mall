@@ -15,7 +15,7 @@ type UpdateCategory struct {
 }
 
 type DeleteCategory struct {
-	ID int64
+	IDs []int64
 }
 
 type UpdateSort struct {

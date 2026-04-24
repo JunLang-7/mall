@@ -42,8 +42,14 @@ func (s *Service) UpdateCategory(ctx context.Context, req *dto.UpdateCategoryReq
 
 // DeleteCategory 删除课程分类目录
 func (s *Service) DeleteCategory(ctx context.Context, req *dto.DeleteCategoryReq) common.Errno {
+	if len(req.IDs) == 0 {
+		errno := common.ParamErr
+		errno.ErrMsg = "ids cannot be empty"
+		return errno
+	}
+
 	err := s.lesson.DeleteCategory(ctx, &do.DeleteCategory{
-		ID: req.ID,
+		IDs: req.IDs,
 	})
 	if err != nil {
 		logger.Error("DeleteCategory DeleteCategory error", zap.Error(err), zap.Any("req", req))

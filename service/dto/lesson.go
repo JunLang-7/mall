@@ -15,7 +15,7 @@ type UpdateCategoryReq struct {
 }
 
 type DeleteCategoryReq struct {
-	ID int64 `json:"id"`
+	IDs []int64 `json:"ids"`
 }
 
 type UpdateSort struct {

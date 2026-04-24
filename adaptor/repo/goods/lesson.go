@@ -47,7 +47,7 @@ func (l *Lesson) UpdateCategory(ctx context.Context, req *do.UpdateCategory) err
 
 func (l *Lesson) DeleteCategory(ctx context.Context, req *do.DeleteCategory) error {
 	qs := query.Use(l.db).LessonCategory
-	_, err := qs.WithContext(ctx).Where(qs.ID.Eq(req.ID)).Delete()
+	_, err := qs.WithContext(ctx).Where(qs.ID.In(req.IDs...)).Delete()
 	return err
 }
 
