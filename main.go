@@ -54,6 +54,12 @@ func initMySQL(conf *config.MySQL) (*gorm.DB, error) {
 	if err != nil {
 		return nil, err
 	}
+	sqlDB, err := db.DB()
+	if err != nil {
+		return nil, err
+	}
+	sqlDB.SetMaxIdleConns(conf.MaxIdle)
+	sqlDB.SetMaxOpenConns(conf.MaxOpen)
 	return db, err
 }
 
