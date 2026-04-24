@@ -6,6 +6,7 @@ import (
 	"github.com/JunLang-7/mall/service/goods"
 	"github.com/JunLang-7/mall/service/perm"
 	"github.com/JunLang-7/mall/service/role"
+	"github.com/JunLang-7/mall/service/storage"
 )
 
 type Ctrl struct {
@@ -14,6 +15,7 @@ type Ctrl struct {
 	perm    *perm.Service
 	role    *role.Service
 	lesson  *goods.Service
+	storage *storage.Service
 }
 
 func NewCtrl(adaptor adaptor.IAdaptor) *Ctrl {
@@ -23,5 +25,6 @@ func NewCtrl(adaptor adaptor.IAdaptor) *Ctrl {
 		perm:    perm.NewService(adaptor),
 		role:    role.NewService(adaptor),
 		lesson:  goods.NewService(adaptor),
+		storage: storage.NewService(adaptor),
 	}
 }

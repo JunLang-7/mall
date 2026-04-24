@@ -27,6 +27,7 @@ type Config struct {
 	Redis   Redis             `yaml:"redis" mapstructure:"redis"`
 	AppConf map[int32]AppConf `yaml:"app_conf" mapstructure:"app_conf"`
 	BizConf BizConf           `yaml:"biz_conf" mapstructure:"biz_conf"`
+	Storage Storage           `yaml:"storage" mapstructure:"storage"`
 }
 
 type Server struct {
@@ -70,6 +71,21 @@ type AppConf struct {
 
 type BizConf struct {
 	LarkGroupID string `yaml:"lark_group_id" mapstructure:"lark_group_id"`
+}
+
+type Storage struct {
+	SecretID  string `yaml:"secret_id" mapstructure:"secret_id"`
+	SecretKey string `yaml:"secret_key" mapstructure:"secret_key"`
+	AppID     string `yaml:"app_id" mapstructure:"app_id"`
+	Buckets   Bucket `yaml:"bucket" mapstructure:"bucket"`
+}
+
+type Bucket struct {
+	Region     string            `yaml:"region" mapstructure:"region"`
+	BucketName string            `yaml:"bucket_name" mapstructure:"bucket_name"`
+	Domain     string            `yaml:"domain" mapstructure:"domain"`
+	CdnDomain  string            `yaml:"cdn_domain" mapstructure:"cdn_domain"`
+	Paths      map[string]string `yaml:"paths" mapstructure:"paths"`
 }
 
 func init() {

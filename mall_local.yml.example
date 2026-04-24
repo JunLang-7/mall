@@ -26,6 +26,20 @@ redis:
 biz_conf:
   lark_group_id: ${LARK_GROUP_ID}
 
+
+storage:
+  secret_id: ${STORAGE_SECRET_ID}
+  secret_key: ${STORAGE_SECRET_KEY}
+  app_id: ${STORAGE_APP_ID}
+  bucket:
+    region: ${STORAGE_REGION}
+    bucket_name: ${STORAGE_BUCKET_NAME}
+    domain: ${STORAGE_DOMAIN}
+    cdn_domain:  ${STORAGE_CDN_DOMAIN}
+    paths:
+      course: "/course/dev"
+      lesson: "/lesson/dev"
+
 app_conf:
   1000:
     app_type: official
