@@ -63,8 +63,14 @@ func (s *Storage) GetTempSecret(ctx context.Context, req *do.GetTempSecret) (*do
 		return nil, err
 	}
 
+	expiredTime := time.Hour
+	if req.Scene == "intro" {
+		// 课程简介图片的临时密钥过期时间设置为10年
+		expiredTime = time.Hour * 24 * 365 * 10
+	}
+
 	// 生成预签名URL
-	preUrl, err := client.Object.GetPresignedURL(ctx, http.MethodGet, fileKey, s.conf.Storage.SecretID, s.conf.Storage.SecretKey, time.Hour, nil)
+	preUrl, err := client.Object.GetPresignedURL(ctx, http.MethodGet, fileKey, s.conf.Storage.SecretID, s.conf.Storage.SecretKey, expiredTime, nil)
 	if err != nil {
 		return nil, err
 	}

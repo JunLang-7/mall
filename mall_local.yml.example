@@ -39,6 +39,7 @@ storage:
     paths:
       course: "/course/dev"
       lesson: "/lesson/dev"
+      intro: "/intro/dev"
 
 app_conf:
   1000:
