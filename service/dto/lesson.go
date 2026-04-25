@@ -60,18 +60,25 @@ type CreateLessonReq struct {
 }
 
 type UpdateLessonReq struct {
-	ID          int64           `json:"id"`
-	Intro       string          `json:"intro"`
-	CategoryID  int64           `json:"category_id"`
-	VideoKey    string          `json:"video_key"`
-	Attachments []Attachment    `json:"attachments"`
-	Duration    int32           `json:"duration"`
-	Chapters    []LessonChapter `json:"chapters"`
+	ID            int64           `json:"id"`
+	Name          string          `json:"name"`
+	Detail        string          `json:"detail"`
+	CategoryID    int64           `json:"category_id"`
+	VideoKey      string          `json:"video_key"`
+	Attachments   []Attachment    `json:"attachments"`
+	Duration      int32           `json:"duration"`
+	Chapters      []LessonChapter `json:"chapters"`
+	VideoFileName string          `json:"video_file_name"`
 }
 
 type UpdateLessonStatusReq struct {
 	ID     int64 `json:"id"`
 	Status int32 `json:"status"`
+}
+
+type MoveLessonReq struct {
+	LessonIDs  []int64 `json:"lesson_ids"`
+	CategoryID int64   `json:"category_id"`
 }
 
 type ListLessonReq struct {
@@ -95,6 +102,7 @@ type LessonDto struct {
 	CategoryID    int64           `json:"category_id"`
 	CategoryName  string          `json:"category_name"`
 	VideoKey      string          `json:"video_key"`
+	VideoURL      string          `json:"video_url"`
 	VideoFileName string          `json:"video_file_name"`
 	Attachments   []Attachment    `json:"attachments"`
 	Duration      int32           `json:"duration"`
@@ -110,4 +118,8 @@ type ListLessonResp struct {
 	List  []*LessonDto `json:"list"`
 	Total int64        `json:"total"`
 	common.Pager
+}
+
+type LessonInfoReq struct {
+	ID int64 `json:"id"`
 }

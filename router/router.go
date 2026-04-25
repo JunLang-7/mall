@@ -117,9 +117,11 @@ func (r *Router) adminRoute(root *gin.RouterGroup) {
 
 	// 录播课时管理
 	adminRoot.POST("/v1/lesson/create", r.admin.CreateLesson)
-	//adminRoot.POST("/v1/lesson/update", r.admin.UpdateLesson)
-	//adminRoot.POST("/v1/lesson/update_status", r.admin.UpdateLessonStatus)
+	adminRoot.POST("/v1/lesson/update", r.admin.UpdateLesson)
+	adminRoot.POST("/v1/lesson/update_status", r.admin.UpdateLessonStatus)
+	adminRoot.POST("/v1/lesson/move", r.admin.MoveLesson)
 	adminRoot.POST("/v1/lesson/list", r.admin.ListLesson)
+	adminRoot.GET("/v1/lesson/info", r.admin.LessonInfo)
 
 	// 获取对象存储临时密钥
 	adminRoot.POST("/v1/storage/get_temp_secret", r.admin.GetTempSecret)

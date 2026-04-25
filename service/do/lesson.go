@@ -38,8 +38,8 @@ type LessonChapter struct {
 }
 
 type Attachment struct {
-	FileKey    string
-	OriginName string
+	FileKey    string `json:"file_key"`
+	OriginName string `json:"origin_name"`
 }
 
 type CreateLesson struct {
@@ -55,20 +55,28 @@ type CreateLesson struct {
 }
 
 type UpdateLesson struct {
-	UserID      int64
-	ID          int64
-	Intro       string
-	CategoryID  int64
-	VideoKey    string
-	Attachments []string
-	Duration    int32
-	Chapters    []LessonChapter
+	UserID        int64
+	ID            int64
+	Name          string
+	Detail        string
+	CategoryID    int64
+	VideoKey      string
+	VideoFileName string
+	Attachments   []Attachment
+	Duration      int32
+	Chapters      []LessonChapter
 }
 
 type UpdateLessonStatus struct {
 	UserID int64
 	ID     int64
 	Status int32
+}
+
+type MoveLesson struct {
+	UserID     int64
+	LessonIDs  []int64
+	CategoryID int64
 }
 
 type ListLesson struct {

@@ -24,6 +24,9 @@ type ILesson interface {
 	GetCategoryNameMap(ctx context.Context, ids []int64) (map[int64]string, error)
 	CategorySort(ctx context.Context, sortList []*do.UpdateSort) error
 	CreateLesson(ctx context.Context, req *do.CreateLesson) (int64, error)
+	UpdateLesson(ctx context.Context, req *do.UpdateLesson) error
+	UpdateLessonStatus(ctx context.Context, req *do.UpdateLessonStatus) error
+	MoveLesson(ctx context.Context, req *do.MoveLesson) error
 	ListLesson(ctx context.Context, req *do.ListLesson) ([]*model.Lesson, int64, error)
 }
 
@@ -152,6 +155,43 @@ func (l *Lesson) CreateLesson(ctx context.Context, req *do.CreateLesson) (int64,
 	return addObj.ID, err
 }
 
+func (l *Lesson) UpdateLesson(ctx context.Context, req *do.UpdateLesson) error {
+	qs := query.Use(l.db).Lesson
+	_, err := qs.WithContext(ctx).Where(qs.ID.Eq(req.ID)).UpdateSimple(
+		qs.Name.Value(req.Name),
+		qs.Detail.Value(req.Detail),
+		qs.CategoryID.Value(req.CategoryID),
+		qs.VideoKey.Value(req.VideoKey),
+		qs.VideoFileName.Value(req.VideoFileName),
+		qs.Duration.Value(req.Duration),
+		qs.Attachments.Value(gconv.String(req.Attachments)),
+		qs.Chapters.Value(gconv.String(req.Chapters)),
+		qs.UpdateBy.Value(req.UserID),
+		qs.UpdateAt.Value(time.Now()),
+	)
+	return err
+}
+
+func (l *Lesson) UpdateLessonStatus(ctx context.Context, req *do.UpdateLessonStatus) error {
+	qs := query.Use(l.db).Lesson
+	_, err := qs.WithContext(ctx).Where(qs.ID.Eq(req.ID)).UpdateSimple(
+		qs.Status.Value(req.Status),
+		qs.UpdateAt.Value(time.Now()),
+		qs.UpdateBy.Value(req.UserID),
+	)
+	return err
+}
+
+func (l *Lesson) MoveLesson(ctx context.Context, req *do.MoveLesson) error {
+	qs := query.Use(l.db).Lesson
+	_, err := qs.WithContext(ctx).Where(qs.ID.In(req.LessonIDs...)).UpdateSimple(
+		qs.CategoryID.Value(req.CategoryID),
+		qs.UpdateAt.Value(time.Now()),
+		qs.UpdateBy.Value(req.UserID),
+	)
+	return err
+}
+
 func (l *Lesson) ListLesson(ctx context.Context, req *do.ListLesson) ([]*model.Lesson, int64, error) {
 	qs := query.Use(l.db).Lesson
 	tx := qs.WithContext(ctx)
@@ -161,7 +201,7 @@ func (l *Lesson) ListLesson(ctx context.Context, req *do.ListLesson) ([]*model.L
 	if req.NameKw != "" {
 		tx = tx.Where(qs.Name.Like(tools.GetAllLike(req.NameKw)))
 	}
-	if req.CategoryIDs != nil && len(req.CategoryIDs) > 0 {
+	if len(req.CategoryIDs) > 0 {
 		tx = tx.Where(qs.CategoryID.In(req.CategoryIDs...))
 	}
 	if req.Status != 0 {

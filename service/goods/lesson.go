@@ -2,6 +2,7 @@ package goods
 
 import (
 	"context"
+	"encoding/json"
 
 	"github.com/JunLang-7/mall/adaptor/repo/model"
 	"github.com/JunLang-7/mall/common"
@@ -98,6 +99,7 @@ func (s *Service) CategorySort(ctx context.Context, sortList dto.UpdateCategoryS
 	return common.OK
 }
 
+// CreateLesson 创建课程
 func (s *Service) CreateLesson(ctx context.Context, user *common.AdminUser, req *dto.CreateLessonReq) (int64, common.Errno) {
 	lessonID, err := s.lesson.CreateLesson(ctx, &do.CreateLesson{
 		UserID:        user.UserID,
@@ -128,6 +130,72 @@ func (s *Service) CreateLesson(ctx context.Context, user *common.AdminUser, req 
 	return lessonID, common.OK
 }
 
+// UpdateLesson 更新课程
+func (s *Service) UpdateLesson(ctx context.Context, user *common.AdminUser, req *dto.UpdateLessonReq) common.Errno {
+	err := s.lesson.UpdateLesson(ctx, &do.UpdateLesson{
+		UserID:        user.UserID,
+		ID:            req.ID,
+		Name:          req.Name,
+		Detail:        req.Detail,
+		CategoryID:    req.CategoryID,
+		VideoKey:      req.VideoKey,
+		VideoFileName: req.VideoFileName,
+		Duration:      req.Duration,
+		Attachments: lo.Map(req.Attachments, func(item dto.Attachment, index int) do.Attachment {
+			return do.Attachment{
+				FileKey:    item.FileKey,
+				OriginName: item.OriginName,
+			}
+		}),
+		Chapters: lo.Map(req.Chapters, func(item dto.LessonChapter, index int) do.LessonChapter {
+			return do.LessonChapter{
+				Name:          item.Name,
+				BeginPosition: item.BeginPosition,
+				EndPosition:   item.EndPosition,
+			}
+		}),
+	})
+	if err != nil {
+		logger.Error("UpdateLesson UpdateLesson error", zap.Error(err), zap.Any("req", req))
+		return *common.DataBaseErr.WithErr(err)
+	}
+	return common.OK
+}
+
+// UpdateLessonStatus 更新课程状态
+func (s *Service) UpdateLessonStatus(ctx context.Context, user *common.AdminUser, req *dto.UpdateLessonStatusReq) common.Errno {
+	err := s.lesson.UpdateLessonStatus(ctx, &do.UpdateLessonStatus{
+		UserID: user.UserID,
+		ID:     req.ID,
+		Status: req.Status,
+	})
+	if err != nil {
+		logger.Error("UpdateLessonStatus UpdateLessonStatus error", zap.Error(err), zap.Any("req", req))
+		return *common.DataBaseErr.WithErr(err)
+	}
+	return common.OK
+}
+
+// MoveLesson 移动课程到其他分类
+func (s *Service) MoveLesson(ctx context.Context, user *common.AdminUser, req *dto.MoveLessonReq) common.Errno {
+	if len(req.LessonIDs) == 0 {
+		errno := common.ParamErr
+		errno.ErrMsg = "lesson_ids cannot be empty"
+		return errno
+	}
+	err := s.lesson.MoveLesson(ctx, &do.MoveLesson{
+		UserID:     user.UserID,
+		LessonIDs:  req.LessonIDs,
+		CategoryID: req.CategoryID,
+	})
+	if err != nil {
+		logger.Error("MoveLesson MoveLesson error", zap.Error(err), zap.Any("req", req))
+		return *common.DataBaseErr.WithErr(err)
+	}
+	return common.OK
+}
+
+// ListLesson 获取课程列表
 func (s *Service) ListLesson(ctx context.Context, req *dto.ListLessonReq) (*dto.ListLessonResp, common.Errno) {
 	categoryIDs := make([]int64, 0)
 	if req.CategoryID != 0 {
@@ -158,18 +226,22 @@ func (s *Service) ListLesson(ctx context.Context, req *dto.ListLessonReq) (*dto.
 	}
 	categoryIDs = make([]int64, 0)
 	userIDs := make([]int64, 0)
+	fileKeys := make([]string, 0)
 	categoryNames := make(map[int64]string)
 	userNames := make(map[int64]string)
+	fileNames := make(map[string]string)
 
 	lo.ForEach(list, func(item *model.Lesson, index int) {
 		categoryIDs = append(categoryIDs, item.CategoryID)
 		userIDs = append(userIDs, item.CreateBy, item.UpdateBy)
+		fileKeys = append(fileKeys, item.VideoKey)
 	})
 
 	categoryIDs = lo.Uniq(categoryIDs)
 	userIDs = lo.Uniq(userIDs)
 
-	pl := pool.NewPoolWithSize(2)
+	// 并发查询分类名称和用户名称
+	pl := pool.NewPoolWithSize(3)
 	defer pl.Release()
 	pl.RunGo(func() {
 		temp, err := s.lesson.GetCategoryNameMap(ctx, categoryIDs)
@@ -187,22 +259,42 @@ func (s *Service) ListLesson(ctx context.Context, req *dto.ListLessonReq) (*dto.
 		}
 		userNames = temp
 	})
+	pl.RunGo(func() {
+		temp, err := s.storage.GetPreviewUrl(ctx, &do.GetPreviewUrl{
+			Keys:   fileKeys,
+			Expire: 6,
+		})
+		if err != nil {
+			logger.Error("ListLesson GetFileNameMap error", zap.Error(err), zap.Any("req", req))
+			return
+		}
+		fileNames = temp
+	})
 	pl.Wait()
 
 	retList := make([]*dto.LessonDto, 0)
 	lo.ForEach(list, func(item *model.Lesson, index int) {
+		attachments := make([]dto.Attachment, 0)
+		chapters := make([]dto.LessonChapter, 0)
+		json.Unmarshal([]byte(item.Attachments), &attachments)
+		json.Unmarshal([]byte(item.Chapters), &chapters)
 		retList = append(retList, &dto.LessonDto{
-			ID:           item.ID,
-			Name:         item.Name,
-			Detail:       item.Detail,
-			Duration:     item.Duration,
-			CategoryID:   item.CategoryID,
-			CategoryName: categoryNames[item.CategoryID],
-			Status:       item.Status,
-			CreateBy:     item.CreateBy,
-			UpdateBy:     item.UpdateBy,
-			CreateAt:     item.CreateAt.UnixMilli(),
-			UpdateAt:     item.UpdateAt.UnixMilli(),
+			ID:            item.ID,
+			Name:          item.Name,
+			Detail:        item.Detail,
+			Duration:      item.Duration,
+			CategoryID:    item.CategoryID,
+			CategoryName:  categoryNames[item.CategoryID],
+			VideoKey:      item.VideoKey,
+			VideoURL:      fileNames[item.VideoKey],
+			VideoFileName: item.VideoFileName,
+			Status:        item.Status,
+			CreateBy:      item.CreateBy,
+			UpdateBy:      item.UpdateBy,
+			CreateAt:      item.CreateAt.UnixMilli(),
+			UpdateAt:      item.UpdateAt.UnixMilli(),
+			Attachments:   attachments,
+			Chapters:      chapters,
 			CreateUpdateName: common.CreateUpdateName{
 				CreateName: userNames[item.CreateBy],
 				UpdateName: userNames[item.UpdateBy],
@@ -214,4 +306,19 @@ func (s *Service) ListLesson(ctx context.Context, req *dto.ListLessonReq) (*dto.
 		Total: total,
 		Pager: req.Pager,
 	}, common.OK
+}
+
+func (s *Service) LessonInfo(ctx context.Context, req *dto.LessonInfoReq) (*dto.LessonDto, common.Errno) {
+	resp, errno := s.ListLesson(ctx, &dto.ListLessonReq{
+		ID: req.ID,
+	})
+	if !errno.IsOK() {
+		logger.Error("LessonInfo ListLesson error", zap.Any("err", errno), zap.Any("req", req))
+		return nil, *common.DataBaseErr.WithMsg(errno.ErrMsg)
+	}
+	if resp == nil || len(resp.List) == 0 {
+		logger.Error("LessonInfo ListLesson error", zap.Any("resp", resp))
+		return nil, *common.ParamErr.WithMsg("invalid id")
+	}
+	return resp.List[0], common.OK
 }

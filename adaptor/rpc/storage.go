@@ -139,8 +139,19 @@ func (s *Storage) getPreviewClient(_ context.Context) (*cos.Client, error) {
 }
 
 func (s *Storage) GetPreviewUrl(ctx context.Context, req *do.GetPreviewUrl) (map[string]string, error) {
-	//TODO implement me
-	panic("implement me")
+	client, err := s.getPreviewClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+	fileKeyMap := make(map[string]string)
+	for _, fileKey := range req.Keys {
+		pre, err := client.Object.GetPresignedURL(ctx, http.MethodGet, fileKey, s.conf.Storage.SecretID, s.conf.Storage.SecretKey, time.Hour, nil)
+		if err != nil {
+			return nil, err
+		}
+		fileKeyMap[fileKey] = pre.String()
+	}
+	return fileKeyMap, nil
 }
 
 func (s *Storage) DeleteFile(ctx context.Context, req *do.DeleteFile) error {

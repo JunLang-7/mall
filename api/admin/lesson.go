@@ -62,6 +62,7 @@ func (ctrl *Ctrl) CategorySorts(ctx *gin.Context) {
 	api.WriteResp(ctx, nil, errno)
 }
 
+// CreateLesson 创建课程
 func (ctrl *Ctrl) CreateLesson(ctx *gin.Context) {
 	user := api.GetAdminUserFromCtx(ctx)
 	req := &dto.CreateLessonReq{}
@@ -73,6 +74,43 @@ func (ctrl *Ctrl) CreateLesson(ctx *gin.Context) {
 	api.WriteResp(ctx, id, errno)
 }
 
+// UpdateLesson 更新课程
+func (ctrl *Ctrl) UpdateLesson(ctx *gin.Context) {
+	user := api.GetAdminUserFromCtx(ctx)
+	req := &dto.UpdateLessonReq{}
+	if err := ctx.BindJSON(req); err != nil {
+		api.WriteResp(ctx, nil, *common.ParamErr.WithErr(err))
+		return
+	}
+	errno := ctrl.lesson.UpdateLesson(ctx.Request.Context(), user, req)
+	api.WriteResp(ctx, nil, errno)
+}
+
+// UpdateLessonStatus 更新课程状态
+func (ctrl *Ctrl) UpdateLessonStatus(ctx *gin.Context) {
+	user := api.GetAdminUserFromCtx(ctx)
+	req := &dto.UpdateLessonStatusReq{}
+	if err := ctx.BindJSON(req); err != nil {
+		api.WriteResp(ctx, nil, *common.ParamErr.WithErr(err))
+		return
+	}
+	errno := ctrl.lesson.UpdateLessonStatus(ctx.Request.Context(), user, req)
+	api.WriteResp(ctx, nil, errno)
+}
+
+// MoveLesson 移动课程到其他分类
+func (ctrl *Ctrl) MoveLesson(ctx *gin.Context) {
+	user := api.GetAdminUserFromCtx(ctx)
+	req := &dto.MoveLessonReq{}
+	if err := ctx.BindJSON(req); err != nil {
+		api.WriteResp(ctx, nil, *common.ParamErr.WithErr(err))
+		return
+	}
+	errno := ctrl.lesson.MoveLesson(ctx.Request.Context(), user, req)
+	api.WriteResp(ctx, nil, errno)
+}
+
+// ListLesson 获取课程列表
 func (ctrl *Ctrl) ListLesson(ctx *gin.Context) {
 	req := &dto.ListLessonReq{}
 	if err := ctx.BindJSON(req); err != nil {
@@ -80,5 +118,15 @@ func (ctrl *Ctrl) ListLesson(ctx *gin.Context) {
 		return
 	}
 	resp, errno := ctrl.lesson.ListLesson(ctx.Request.Context(), req)
+	api.WriteResp(ctx, resp, errno)
+}
+
+func (ctrl *Ctrl) LessonInfo(ctx *gin.Context) {
+	req := &dto.LessonInfoReq{}
+	if err := ctx.BindQuery(req); err != nil {
+		api.WriteResp(ctx, nil, *common.ParamErr.WithErr(err))
+		return
+	}
+	resp, errno := ctrl.lesson.LessonInfo(ctx.Request.Context(), req)
 	api.WriteResp(ctx, resp, errno)
 }
