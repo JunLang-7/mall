@@ -132,7 +132,15 @@ func (s *Service) CreateLesson(ctx context.Context, user *common.AdminUser, req 
 
 // UpdateLesson 更新课程
 func (s *Service) UpdateLesson(ctx context.Context, user *common.AdminUser, req *dto.UpdateLessonReq) common.Errno {
-	err := s.lesson.UpdateLesson(ctx, &do.UpdateLesson{
+	lesson, err := s.lesson.GetLessonByID(ctx, req.ID)
+	if err != nil {
+		logger.Error("UpdateLesson GetLessonByID error", zap.Error(err), zap.Any("req", req))
+		return *common.DataBaseErr.WithErr(err)
+	}
+	if lesson == nil {
+		return *common.ParamErr.WithMsg("invalid id")
+	}
+	err = s.lesson.UpdateLesson(ctx, &do.UpdateLesson{
 		UserID:        user.UserID,
 		ID:            req.ID,
 		Name:          req.Name,
@@ -158,6 +166,21 @@ func (s *Service) UpdateLesson(ctx context.Context, user *common.AdminUser, req 
 	if err != nil {
 		logger.Error("UpdateLesson UpdateLesson error", zap.Error(err), zap.Any("req", req))
 		return *common.DataBaseErr.WithErr(err)
+	}
+	// 视频更换 删除cos中的旧视频文件
+	if lesson.VideoKey != req.VideoKey {
+		err := s.storage.DeleteFile(ctx, &do.DeleteFile{
+			Keys: []string{lesson.VideoKey},
+		})
+		if err != nil {
+			logger.Error("UpdateLesson DeleteFile error", zap.Error(err), zap.Any("req", req))
+			return common.OK
+		}
+		err = s.upload.DeleteUploadFile(ctx, []string{lesson.VideoKey})
+		if err != nil {
+			logger.Error("UpdateLesson DeleteUploadFile error", zap.Error(err), zap.Any("req", req))
+			return common.OK
+		}
 	}
 	return common.OK
 }

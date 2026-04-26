@@ -12,9 +12,11 @@ import (
 	"github.com/JunLang-7/mall/adaptor"
 	"github.com/JunLang-7/mall/config"
 	"github.com/JunLang-7/mall/service/do"
+	"github.com/JunLang-7/mall/utils/logger"
 	"github.com/JunLang-7/mall/utils/tools"
 	"github.com/tencentyun/cos-go-sdk-v5"
 	sts "github.com/tencentyun/qcloud-cos-sts-sdk/go"
+	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
 
@@ -161,6 +163,25 @@ func (s *Storage) GetPreviewUrl(ctx context.Context, req *do.GetPreviewUrl) (map
 }
 
 func (s *Storage) DeleteFile(ctx context.Context, req *do.DeleteFile) error {
-	//TODO implement me
-	panic("implement me")
+	u, err := url.Parse(s.conf.Storage.Buckets.Domain)
+	if err != nil {
+		return errors.New("DeleteFile bucket config Domain error")
+	}
+	baseUrl := &cos.BaseURL{BucketURL: u}
+	client := cos.NewClient(baseUrl, &http.Client{
+		Transport: &cos.AuthorizationTransport{
+			SecretID:  s.conf.Storage.SecretID,
+			SecretKey: s.conf.Storage.SecretKey,
+		},
+	})
+	for _, srcKey := range req.Keys {
+		if srcKey == "" {
+			continue
+		}
+		resp, err := client.Object.Delete(context.Background(), srcKey)
+		if err != nil {
+			logger.Error("DeleteFile object error", zap.Error(err), zap.Any("resp", resp))
+		}
+	}
+	return nil
 }

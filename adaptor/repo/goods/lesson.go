@@ -28,6 +28,8 @@ type ILesson interface {
 	UpdateLessonStatus(ctx context.Context, req *do.UpdateLessonStatus) error
 	MoveLesson(ctx context.Context, req *do.MoveLesson) error
 	ListLesson(ctx context.Context, req *do.ListLesson) ([]*model.Lesson, int64, error)
+	GetLessonByID(ctx context.Context, id int64) (*model.Lesson, error)
+	GetLessonByIDs(ctx context.Context, ids []int64) (map[int64]*model.Lesson, error)
 }
 
 type Lesson struct {
@@ -214,4 +216,20 @@ func (l *Lesson) ListLesson(ctx context.Context, req *do.ListLesson) ([]*model.L
 		tx = tx.Where(qs.UpdateAt.Between(time.UnixMilli(req.EndUpdateTime), time.UnixMilli(req.EndUpdateTime)))
 	}
 	return tx.Order(qs.Status.Desc(), qs.ID.Desc()).FindByPage(req.GetOffset(), req.Limit)
+}
+
+func (l *Lesson) GetLessonByID(ctx context.Context, id int64) (*model.Lesson, error) {
+	qs := query.Use(l.db).Lesson
+	return qs.WithContext(ctx).Where(qs.ID.Eq(id)).First()
+}
+
+func (l *Lesson) GetLessonByIDs(ctx context.Context, ids []int64) (map[int64]*model.Lesson, error) {
+	qs := query.Use(l.db).Lesson
+	list, err := qs.WithContext(ctx).Where(qs.ID.In(ids...)).Find()
+	if err != nil {
+		return nil, err
+	}
+	return lo.SliceToMap(list, func(item *model.Lesson) (int64, *model.Lesson) {
+		return item.ID, item
+	}), nil
 }

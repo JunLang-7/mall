@@ -11,6 +11,7 @@ import (
 
 type IUploadFile interface {
 	CreateUploadFile(ctx context.Context, fileList []do.AddUploadFile) error
+	DeleteUploadFile(ctx context.Context, strings []string) error
 }
 
 type UploadFile struct {
@@ -39,4 +40,12 @@ func (u *UploadFile) CreateUploadFile(ctx context.Context, fileList []do.AddUplo
 		})
 	}
 	return u.db.WithContext(ctx).CreateInBatches(&addList, 100).Error
+}
+
+// DeleteUploadFile 删除上传文件记录
+func (u *UploadFile) DeleteUploadFile(ctx context.Context, fileList []string) error {
+	if len(fileList) == 0 {
+		return nil
+	}
+	return u.db.WithContext(ctx).Where("file_key IN ?", fileList).Delete(&model.ResourceUploadFile{}).Error
 }
