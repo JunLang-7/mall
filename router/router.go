@@ -125,6 +125,13 @@ func (r *Router) adminRoute(root *gin.RouterGroup) {
 
 	// 获取对象存储临时密钥
 	adminRoot.POST("/v1/storage/get_temp_secret", r.admin.GetTempSecret)
+
+	// 课程管理
+	adminRoot.POST("/v1/course/create", r.admin.CreateCourse)
+	adminRoot.GET("/v1/course/info", r.admin.GetCourseInfo)
+	adminRoot.POST("/v1/course/update", r.admin.UpdateCourse)
+	adminRoot.POST("/v1/course/update_status", r.admin.UpdateCourseStatus)
+	adminRoot.GET("/v1/course/list", r.admin.ListCourse)
 }
 
 func (r *Router) customerRoute(root *gin.RouterGroup) {

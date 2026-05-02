@@ -13,6 +13,7 @@ type Service struct {
 	user    admin.IAdminUser
 	storage rpc.IStorage
 	upload  upload.IUploadFile
+	course  goods.ICourse
 }
 
 func NewService(adaptor adaptor.IAdaptor) *Service {
@@ -21,5 +22,6 @@ func NewService(adaptor adaptor.IAdaptor) *Service {
 		user:    admin.NewRepo(adaptor),
 		storage: rpc.NewStorage(adaptor),
 		upload:  upload.NewUploadFile(adaptor),
+		course:  goods.NewCourse(adaptor),
 	}
 }
