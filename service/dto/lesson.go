@@ -83,6 +83,7 @@ type MoveLessonReq struct {
 
 type ListLessonReq struct {
 	common.Pager
+	CourseID        int64  `json:"course_id"`
 	ID              int64  `json:"id"`
 	OnView          bool   `json:"on_view"`
 	NameKw          string `json:"name_kw"`

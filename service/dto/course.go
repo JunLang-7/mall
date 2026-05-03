@@ -78,3 +78,79 @@ type CourseListResp struct {
 	List  []*CourseDto `json:"list"`
 	Total int64        `json:"total"`
 }
+
+type AddCatalogReq struct {
+	CourseID int64  `json:"course_id"`
+	Name     string `json:"name"`
+	ParentID int64  `json:"parent_id"`
+	Sort     int32  `json:"sort"`
+	Level    int32  `json:"level"`
+}
+
+type UpdateCatalogReq struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+}
+
+type DeleteCatalogReq struct {
+	ID int64 `json:"id"`
+}
+
+type UpdateCatalogSortDto struct {
+	ID       int64            `json:"id"`
+	Sort     int32            `json:"sort"`
+	ParentID int64            `json:"parent_id"`
+	Level    int32            `json:"level"`
+	Lessons  []*common.IDSort `json:"lessons"`
+}
+
+type CatalogLessonDto struct {
+	ID            int64  `json:"id"`
+	LessonID      int64  `json:"lesson_id"`
+	Name          string `json:"name"`
+	Detail        string `json:"detail"`
+	VideoURL      string `json:"video_url"`
+	VideoFileName string `json:"video_file_name"`
+	Duration      int32  `json:"duration"`
+	Status        int32  `json:"status"`
+	ShowTime      int64  `json:"show_time"`
+	EnableTrial   bool   `json:"enable_trial"`
+}
+
+type CatalogInfoReq struct {
+	CourseID int64 `form:"course_id"`
+}
+
+type CatalogDto struct {
+	ID          int64               `json:"id"`
+	ParentID    int64               `json:"parent_id"`
+	Level       int32               `json:"level"`
+	Name        string              `json:"name"`
+	CourseID    int64               `json:"course_id"`
+	Sort        int32               `json:"sort"`
+	Lessons     []*CatalogLessonDto `json:"lessons"`
+	LessonCount int32               `json:"lesson_count"`
+}
+
+type CatalogInfoResp struct {
+	TotalDuration int64         `json:"total_duration"`
+	LessonCount   int32         `json:"lesson_count"`
+	Catalogs      []*CatalogDto `json:"catalogs"`
+}
+
+type AddCatalogLessonReq struct {
+	CourseID  int64   `json:"course_id"`
+	CatalogID int64   `json:"catalog_id"`
+	LessonIDs []int64 `json:"lesson_ids"`
+}
+
+type RemoveCatalogLessonReq struct {
+	IDs []int64 `json:"ids"`
+}
+
+type UpdateCatalogLessonReq struct {
+	ID          int64  `json:"id"`
+	EnableTrial int32  `json:"enable_trial"`
+	Name        string `json:"name"`
+	ShowTime    int64  `json:"show_time"`
+}

@@ -221,6 +221,7 @@ func (s *Service) MoveLesson(ctx context.Context, user *common.AdminUser, req *d
 // ListLesson 获取课程列表
 func (s *Service) ListLesson(ctx context.Context, req *dto.ListLessonReq) (*dto.ListLessonResp, common.Errno) {
 	categoryIDs := make([]int64, 0)
+	excludeIDs := make([]int64, 0)
 	if req.CategoryID != 0 {
 		categoryIDs = append(categoryIDs, req.CategoryID)
 		if req.OnView {
@@ -232,16 +233,27 @@ func (s *Service) ListLesson(ctx context.Context, req *dto.ListLessonReq) (*dto.
 			categoryIDs = append(categoryIDs, tempIDs...)
 		}
 	}
+	if req.CourseID > 0 {
+		courseLessons, err := s.course.GetCourseLessons(ctx, req.CourseID)
+		if err != nil {
+			logger.Error("ListLesson GetCourseLessons error", zap.Error(err), zap.Any("req", req))
+			return nil, *common.DataBaseErr.WithErr(err)
+		}
+		excludeIDs = lo.Map(courseLessons, func(item *model.CourseLesson, index int) int64 {
+			return item.LessonID
+		})
+	}
 	list, total, err := s.lesson.ListLesson(ctx, &do.ListLesson{
-		Pager:           req.Pager,
-		ID:              req.ID,
-		NameKw:          req.NameKw,
-		CategoryIDs:     categoryIDs,
-		Status:          req.Status,
-		StartCreateTime: req.StartCreateTime,
-		EndCreateTime:   req.EndCreateTime,
-		StartUpdateTime: req.BeginUpdateTime,
-		EndUpdateTime:   req.EndUpdateTime,
+		Pager:            req.Pager,
+		ExcludeCourseIDs: excludeIDs,
+		ID:               req.ID,
+		NameKw:           req.NameKw,
+		CategoryIDs:      categoryIDs,
+		Status:           req.Status,
+		StartCreateTime:  req.StartCreateTime,
+		EndCreateTime:    req.EndCreateTime,
+		StartUpdateTime:  req.BeginUpdateTime,
+		EndUpdateTime:    req.EndUpdateTime,
 	})
 	if err != nil {
 		logger.Error("ListLesson ListLesson error", zap.Error(err), zap.Any("req", req))

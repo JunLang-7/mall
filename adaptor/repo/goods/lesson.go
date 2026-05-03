@@ -200,6 +200,9 @@ func (l *Lesson) ListLesson(ctx context.Context, req *do.ListLesson) ([]*model.L
 	if req.ID > 0 {
 		tx = tx.Where(qs.ID.Eq(req.ID))
 	}
+	if len(req.ExcludeCourseIDs) > 0 {
+		tx = tx.Where(qs.ID.NotIn(req.ExcludeCourseIDs...))
+	}
 	if req.NameKw != "" {
 		tx = tx.Where(qs.Name.Like(tools.GetAllLike(req.NameKw)))
 	}

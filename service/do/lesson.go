@@ -81,12 +81,13 @@ type MoveLesson struct {
 
 type ListLesson struct {
 	common.Pager
-	ID              int64
-	NameKw          string
-	CategoryIDs     []int64
-	Status          int32
-	StartCreateTime int64
-	EndCreateTime   int64
-	StartUpdateTime int64
-	EndUpdateTime   int64
+	ExcludeCourseIDs []int64
+	ID               int64
+	NameKw           string
+	CategoryIDs      []int64
+	Status           int32
+	StartCreateTime  int64
+	EndCreateTime    int64
+	StartUpdateTime  int64
+	EndUpdateTime    int64
 }

@@ -132,6 +132,18 @@ func (r *Router) adminRoute(root *gin.RouterGroup) {
 	adminRoot.POST("/v1/course/update", r.admin.UpdateCourse)
 	adminRoot.POST("/v1/course/update_status", r.admin.UpdateCourseStatus)
 	adminRoot.GET("/v1/course/list", r.admin.ListCourse)
+
+	// 课程目录管理
+	adminRoot.POST("/v1/course/catalog/add", r.admin.AddCatalog)
+	adminRoot.POST("/v1/course/catalog/update", r.admin.UpdateCatalog)
+	adminRoot.POST("/v1/course/catalog/delete", r.admin.DeleteCatalog)
+	adminRoot.POST("/v1/course/catalog/update_sort", r.admin.UpdateCatalogSort)
+	adminRoot.GET("/v1/course/catalog/info", r.admin.GetCatalogInfo)
+
+	// 课程下的课时管理
+	adminRoot.POST("/v1/course/catalog/add_lesson", r.admin.AddCatalogLesson)
+	adminRoot.POST("/v1/course/catalog/remove_lesson", r.admin.RemoveCatalogLesson)
+	adminRoot.POST("/v1/course/catalog/update_lesson", r.admin.UpdateCatalogLesson)
 }
 
 func (r *Router) customerRoute(root *gin.RouterGroup) {
