@@ -45,3 +45,18 @@ services:
       - ETCD_SERVERS=http://etcd:2379 # 使用etcd的服务器进行连接
     depends_on:
       - etcd
+
+  mall_backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mall-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - TZ=Asia/Shanghai
+      - ETCD_ADDR=http://127.0.0.1:2379
+    working_dir: /data/wwwRoot
+    command: ["./mall.backend"]
+    network_mode: "host"
