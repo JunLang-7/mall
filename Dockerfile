@@ -1,4 +1,4 @@
-FROM golang:1.23 AS build
+FROM golang:1.26-alpine AS build
 
 RUN go env -w GO111MODULE=on
 RUN go env -w GOPROXY=https://goproxy.cn,direct
@@ -21,7 +21,7 @@ FROM alpine:3.21
 RUN mkdir -p /data/wwwRoot/
 COPY --from=build /data/wwwRoot/mall.backend /data/wwwRoot/mall.backend
 
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repository
+RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 RUN apk update && apk add tzdata
 RUN echo 'Asia/Shanghai' > /etc/timezone
 RUN ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime

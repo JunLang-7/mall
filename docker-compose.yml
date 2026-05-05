@@ -56,7 +56,10 @@ services:
       - "8080:8080"
     environment:
       - TZ=Asia/Shanghai
-      - ETCD_ADDR=http://127.0.0.1:2379
+      - ETCD_ADDR=http://etcd:2379
     working_dir: /data/wwwRoot
     command: ["./mall.backend"]
-    network_mode: "host"
+    depends_on:
+      - etcd
+      - mysql
+      - redis

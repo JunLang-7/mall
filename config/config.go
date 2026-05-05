@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/goccy/go-yaml"
-	"github.com/gogf/gf/util/gconv"
 	"github.com/spf13/viper"
 	_ "github.com/spf13/viper/remote"
 )
@@ -133,7 +132,7 @@ func getFromRemoteAndWatchUpdate(v *viper.Viper) (*Config, error) {
 			time.Sleep(time.Minute)
 			if err := v.WatchRemoteConfig(); err == nil {
 				_ = v.Unmarshal(&GlobalConfig)
-				fmt.Println(">>> etcd config hot-reloaded: ", gconv.String(GlobalConfig))
+				fmt.Println(">>> etcd config hot-reloaded")
 			}
 		}
 	}()
