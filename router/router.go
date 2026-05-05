@@ -150,7 +150,9 @@ func (r *Router) customerRoute(root *gin.RouterGroup) {
 	cstRoot := root.Group("/customer", AuthMiddleware(r.SpanFilter, func(ctx context.Context, token string) (*common.User, error) {
 		return &common.User{}, nil
 	}))
-	cstRoot.Any("/user/info", r.admin.GetUserInfo)
+	cstRoot.GET("/v1/user/verify/captcha", r.customer.GetSmsCodeCaptcha)
+	cstRoot.POST("/v1/user/verify/captcha/check", r.customer.CheckSmsCodeCaptcha)
+	cstRoot.POST("/v1/user/verify/smscode", r.customer.GetSmsCodeVerify)
 }
 
 func (r *Router) checkServer() func(ctx *gin.Context) {
