@@ -26,6 +26,27 @@ redis:
 biz_conf:
   lark_group_id: ${LARK_GROUP_ID}
 
+security:
+  mobile_aes_key: ${MOBILE_AES_KEY}
+  mobile_sha256_salt: ${MOBILE_SHA256_SALT}
+  customer_token_ttl_sec: 604800
+
+order:
+  pay_timeout_minutes: 30
+  auto_receive_days: 10
+  snowflake_node_id: 1
+  fee_lock_timeout_minutes: 10
+
+wechat_pay:
+  mch_id: ${WECHAT_PAY_MCH_ID}
+  app_id: ${WECHAT_PAY_APP_ID}
+  api_v3_key: ${WECHAT_PAY_API_V3_KEY}
+  serial_no: ${WECHAT_PAY_SERIAL_NO}
+  private_key_path: ${WECHAT_PAY_PRIVATE_KEY_PATH}
+  payment_notify_url: ${WECHAT_PAY_PAYMENT_NOTIFY_URL}
+  refund_notify_url: ${WECHAT_PAY_REFUND_NOTIFY_URL}
+  native_description: "课程订单"
+
 
 storage:
   secret_id: ${STORAGE_SECRET_ID}

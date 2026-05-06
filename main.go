@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"errors"
 
 	"github.com/JunLang-7/mall/adaptor"
 	"github.com/JunLang-7/mall/config"
 	"github.com/JunLang-7/mall/router"
+	"github.com/JunLang-7/mall/service/user"
 	"github.com/JunLang-7/mall/utils/logger"
 	"github.com/go-redis/redis"
 	"gorm.io/driver/mysql"
@@ -28,11 +30,13 @@ func main() {
 }
 
 func startServer(conf *config.Config, db *gorm.DB, rds *redis.Client) *router.App {
+	adpt := adaptor.NewAdaptor(conf, db, rds)
+	user.NewService(adpt).StartBackgroundTasks(context.Background())
 	return router.NewApp(
 		conf.Server.HttpPort,
 		router.NewRouter(
 			conf,
-			adaptor.NewAdaptor(conf, db, rds),
+			adpt,
 			func() error {
 				err := func() error {
 					pingDb, err := db.DB()
