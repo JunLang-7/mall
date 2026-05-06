@@ -163,6 +163,27 @@ func (r *Router) customerRoute(root *gin.RouterGroup) {
 	cstRoot.POST("/v1/user/change_password", r.customer.ChangePassword)
 	cstRoot.POST("/v1/user/wechat/qrcode_bind", r.customer.WechatQrCodeBind)
 	cstRoot.POST("/v1/user/wechat/unbind", r.customer.WechatUnbind)
+
+	cstRoot.GET("/v1/course/list", r.customer.ListCourse)
+	cstRoot.GET("/v1/course/detail", r.customer.CourseDetail)
+	cstRoot.GET("/v1/course/lesson/info", r.customer.LessonInfo)
+	cstRoot.GET("/v1/course/lesson/learn_info", r.customer.LessonLearnInfo)
+	cstRoot.POST("/v1/course/lesson/learn_report", r.customer.LessonLearnReport)
+	cstRoot.GET("/v1/course/purchased/list", r.customer.PurchasedCourseList)
+
+	cstRoot.POST("/v1/cart/add_goods", r.customer.AddCartGoods)
+	cstRoot.POST("/v1/cart/remove_goods", r.customer.RemoveCartGoods)
+	cstRoot.GET("/v1/cart/list_goods", r.customer.ListCartGoods)
+
+	cstRoot.POST("/v1/order/calc_fee", r.customer.CalcOrderFee)
+	cstRoot.POST("/v1/order/pay_now", r.customer.PayNow)
+	cstRoot.POST("/v1/order/pay_later", r.customer.PayLater)
+	cstRoot.POST("/v1/order/cancel", r.customer.CancelOrder)
+	cstRoot.GET("/v1/order/list", r.customer.OrderList)
+	cstRoot.GET("/v1/order/info", r.customer.OrderInfo)
+	cstRoot.GET("/v1/order/payment_query", r.customer.PaymentQuery)
+	cstRoot.POST("/v1/wechat/callback/payment", r.customer.WechatPaymentCallback)
+	cstRoot.POST("/v1/wechat/callback/refund", r.customer.WechatRefundCallback)
 }
 
 func (r *Router) checkServer() func(ctx *gin.Context) {

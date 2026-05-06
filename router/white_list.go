@@ -19,4 +19,8 @@ var AdminAuthWhiteList = map[string]bool{
 	"/customer/v1/user/mobile/password_login": true,
 	"/customer/v1/user/wechat/qrcode_login":   true,
 	"/customer/v1/user/mobile/reset_password": true,
+	"/customer/v1/course/list":                 true,
+	"/customer/v1/course/detail":               true,
+	"/customer/v1/wechat/callback/payment":     true,
+	"/customer/v1/wechat/callback/refund":      true,
 }
