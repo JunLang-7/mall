@@ -148,11 +148,21 @@ func (r *Router) adminRoute(root *gin.RouterGroup) {
 
 func (r *Router) customerRoute(root *gin.RouterGroup) {
 	cstRoot := root.Group("/customer", AuthMiddleware(r.SpanFilter, func(ctx context.Context, token string) (*common.User, error) {
-		return &common.User{}, nil
+		return r.customer.GetCustomerUserByToken(ctx, token)
 	}))
 	cstRoot.GET("/v1/user/verify/captcha", r.customer.GetSmsCodeCaptcha)
 	cstRoot.POST("/v1/user/verify/captcha/check", r.customer.CheckSmsCodeCaptcha)
 	cstRoot.POST("/v1/user/verify/smscode", r.customer.GetSmsCodeVerify)
+	cstRoot.POST("/v1/user/mobile/verify_login", r.customer.MobileVerifyLogin)
+	cstRoot.POST("/v1/user/mobile/password_login", r.customer.MobilePasswordLogin)
+	cstRoot.POST("/v1/user/mobile/reset_password", r.customer.MobilePasswordReset)
+	cstRoot.POST("/v1/user/wechat/qrcode_login", r.customer.WechatQrCodeLogin)
+	cstRoot.GET("/v1/user/wechat/qrcode_status", r.customer.WechatQrCodeStatus)
+	cstRoot.POST("/v1/user/wechat/scan_confirm", r.customer.WechatScanConfirm)
+	cstRoot.GET("/v1/user/info", r.customer.GetUserInfo)
+	cstRoot.POST("/v1/user/change_password", r.customer.ChangePassword)
+	cstRoot.POST("/v1/user/wechat/qrcode_bind", r.customer.WechatQrCodeBind)
+	cstRoot.POST("/v1/user/wechat/unbind", r.customer.WechatUnbind)
 }
 
 func (r *Router) checkServer() func(ctx *gin.Context) {

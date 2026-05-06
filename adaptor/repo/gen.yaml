@@ -20,7 +20,11 @@ database:
     - role_permission
     - roles
     - sms_template
+    - user_cart
     - user_course_goods
+    - order_refunds
+    - lesson_learn_record
+    - lesson_learn_progress
     - wechat_user
   # 指定生成的查询代码文件的输出目录
   outPath: "./query"

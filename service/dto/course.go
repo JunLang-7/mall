@@ -26,6 +26,7 @@ type CourseDto struct {
 	Sort           int32    `json:"sort"`
 	Features       []string `json:"features"`
 	UpdateStatus   int32    `json:"update_status"`
+	HasPurchased   bool     `json:"has_purchased"`
 	CoverKey       string   `json:"cover_key"`
 	CoverURL       string   `json:"cover_url"`
 	DetailCoverKey string   `json:"detail_cover_key"`
@@ -108,6 +109,7 @@ type CatalogLessonDto struct {
 	ID            int64  `json:"id"`
 	LessonID      int64  `json:"lesson_id"`
 	Name          string `json:"name"`
+	LessonName    string `json:"lesson_name"`
 	Detail        string `json:"detail"`
 	VideoURL      string `json:"video_url"`
 	VideoFileName string `json:"video_file_name"`

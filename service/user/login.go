@@ -48,7 +48,16 @@ func (s *Service) GetSmsCodeVerify(ctx context.Context, req *dto.GetSmsCodeVerif
 		return *common.ServerErr.WithErr(err)
 	}
 	// 将验证码存储到 Redis，并设置过期时间
-	err = s.verify.SetVerifyCode(ctx, req.Mobile, consts.AdminUserMobileLoginSmsCode, verifyCode, consts.ExpireVerifyCodeErrTime)
+	scene := req.Scene
+	switch req.Scene {
+	case "reset_password":
+		scene = consts.CustomerResetPasswordSmsCode
+	case "change_password":
+		scene = consts.CustomerChangePasswordSmsCode
+	default:
+		scene = consts.CustomerMobileLoginSmsCode
+	}
+	err = s.verify.SetVerifyCode(ctx, req.Mobile, scene, verifyCode, consts.ExpireVerifyCodeErrTime)
 	if err != nil {
 		logger.Error("GetSmsCodeVerify SetVerifyCode error", zap.Error(err), zap.String("mobile", req.Mobile))
 		return *common.RedisErr.WithErr(err)

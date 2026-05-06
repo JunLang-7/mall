@@ -23,6 +23,9 @@ type IVerify interface {
 	SetAdminUserToken(ctx context.Context, userID int64, token string, tokenData string, expire time.Duration) error
 	GetAdminUserToken(ctx context.Context, token string) (string, error)
 	CleanToken(ctx context.Context, userId int64) error
+	SetCustomerUserToken(ctx context.Context, userID int64, token string, tokenData string, expire time.Duration) error
+	GetCustomerUserToken(ctx context.Context, token string) (string, error)
+	CleanCustomerToken(ctx context.Context, userID int64) error
 
 	IncrPasswordErr(ctx context.Context, mobile string, expire time.Duration) (int64, error)
 	DeletePasswordErr(ctx context.Context, mobile string) error
@@ -60,6 +63,14 @@ func fmtVerifyPasswordErr(mobile string) string {
 
 func fmtUserMapTokenAdminUser(userId int64) string {
 	return fmt.Sprintf("%s:admin:token:user:%d", config.ServerName, userId)
+}
+
+func fmtVerifyCustomerUserToken(token string) string {
+	return fmt.Sprintf("%s:customer:user:token:%s", config.ServerName, token)
+}
+
+func fmtUserMapTokenCustomerUser(userID int64) string {
+	return fmt.Sprintf("%s:customer:token:user:%d", config.ServerName, userID)
 }
 
 func (v *Verify) SetCaptchaKey(_ context.Context, key string, val string, expire time.Duration) error {
@@ -133,6 +144,33 @@ func (v *Verify) CleanToken(ctx context.Context, userId int64) error {
 		return err
 	}
 	redisKey := fmtVerifyAdminUserToken(token)
+	return v.redis.Del(redisKey, userMapTokenKey).Err()
+}
+
+func (v *Verify) SetCustomerUserToken(_ context.Context, userID int64, token string, tokenData string, expire time.Duration) error {
+	redisKey := fmtVerifyCustomerUserToken(token)
+	if err := v.redis.Set(redisKey, tokenData, expire).Err(); err != nil {
+		return err
+	}
+	userMapTokenKey := fmtUserMapTokenCustomerUser(userID)
+	return v.redis.Set(userMapTokenKey, token, expire).Err()
+}
+
+func (v *Verify) GetCustomerUserToken(_ context.Context, token string) (string, error) {
+	redisKey := fmtVerifyCustomerUserToken(token)
+	return v.redis.Get(redisKey).Result()
+}
+
+func (v *Verify) CleanCustomerToken(_ context.Context, userID int64) error {
+	userMapTokenKey := fmtUserMapTokenCustomerUser(userID)
+	token, err := v.redis.Get(userMapTokenKey).Result()
+	if err != nil {
+		if err == redis.Nil {
+			return nil
+		}
+		return err
+	}
+	redisKey := fmtVerifyCustomerUserToken(token)
 	return v.redis.Del(redisKey, userMapTokenKey).Err()
 }
 

@@ -21,12 +21,15 @@ var (
 )
 
 type Config struct {
-	Server  Server            `yaml:"server" mapstructure:"server"`
-	MySQL   MySQL             `yaml:"mysql" mapstructure:"mysql"`
-	Redis   Redis             `yaml:"redis" mapstructure:"redis"`
-	AppConf map[int32]AppConf `yaml:"app_conf" mapstructure:"app_conf"`
-	BizConf BizConf           `yaml:"biz_conf" mapstructure:"biz_conf"`
-	Storage Storage           `yaml:"storage" mapstructure:"storage"`
+	Server   Server            `yaml:"server" mapstructure:"server"`
+	MySQL    MySQL             `yaml:"mysql" mapstructure:"mysql"`
+	Redis    Redis             `yaml:"redis" mapstructure:"redis"`
+	AppConf  map[int32]AppConf `yaml:"app_conf" mapstructure:"app_conf"`
+	BizConf  BizConf           `yaml:"biz_conf" mapstructure:"biz_conf"`
+	Storage  Storage           `yaml:"storage" mapstructure:"storage"`
+	Security Security          `yaml:"security" mapstructure:"security"`
+	Order    Order             `yaml:"order" mapstructure:"order"`
+	Wechat  WechatPay         `yaml:"wechat_pay" mapstructure:"wechat_pay"`
 }
 
 type Server struct {
@@ -70,6 +73,30 @@ type AppConf struct {
 
 type BizConf struct {
 	LarkGroupID string `yaml:"lark_group_id" mapstructure:"lark_group_id"`
+}
+
+type Security struct {
+	MobileAESKey        string `yaml:"mobile_aes_key" mapstructure:"mobile_aes_key"`
+	MobileSHA256Salt    string `yaml:"mobile_sha256_salt" mapstructure:"mobile_sha256_salt"`
+	CustomerTokenTTLSec int64  `yaml:"customer_token_ttl_sec" mapstructure:"customer_token_ttl_sec"`
+}
+
+type Order struct {
+	PayTimeoutMinutes     int64 `yaml:"pay_timeout_minutes" mapstructure:"pay_timeout_minutes"`
+	AutoReceiveDays       int64 `yaml:"auto_receive_days" mapstructure:"auto_receive_days"`
+	SnowflakeNodeID       int64 `yaml:"snowflake_node_id" mapstructure:"snowflake_node_id"`
+	FeeLockTimeoutMinutes int64 `yaml:"fee_lock_timeout_minutes" mapstructure:"fee_lock_timeout_minutes"`
+}
+
+type WechatPay struct {
+	MchID             string `yaml:"mch_id" mapstructure:"mch_id"`
+	AppID             string `yaml:"app_id" mapstructure:"app_id"`
+	APIv3Key          string `yaml:"api_v3_key" mapstructure:"api_v3_key"`
+	SerialNo          string `yaml:"serial_no" mapstructure:"serial_no"`
+	PrivateKeyPath    string `yaml:"private_key_path" mapstructure:"private_key_path"`
+	PaymentNotifyURL  string `yaml:"payment_notify_url" mapstructure:"payment_notify_url"`
+	RefundNotifyURL   string `yaml:"refund_notify_url" mapstructure:"refund_notify_url"`
+	NativeDescription string `yaml:"native_description" mapstructure:"native_description"`
 }
 
 type Storage struct {
