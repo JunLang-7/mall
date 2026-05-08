@@ -11,8 +11,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o mall.backend main.go
 
 RUN mkdir -p /data/wwwRoot/web/vendor/go-captcha-jslib
 RUN cp mall.backend /data/wwwRoot/mall.backend
-RUN cp -r web/*.html /data/wwwRoot/web/
-RUN cp -r web/vendor /data/wwwRoot/web/
+# RUN cp -r web/*.html /data/wwwRoot/web/
+# RUN cp -r web/vendor /data/wwwRoot/web/
 
 # golang mini runtime linux alpine
 FROM alpine:3.21
