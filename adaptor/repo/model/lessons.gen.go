@@ -19,7 +19,7 @@ type Lesson struct {
 	VideoKey      string `gorm:"column:video_key;not null;comment:key" json:"video_key"`    // key
 	VideoFileName string `gorm:"column:video_file_name;not null" json:"video_file_name"`
 	Duration      int32  `gorm:"column:duration;not null" json:"duration"`
-	Attachments   string `gorm:"column:attachments;not null;comment:[{"file_key": "", "file_name": "", "file_type": ""}]" json:"attachments"` // [{"file_key": "", "file_name": "", "file_type": ""}]
+	Attachments   string `gorm:"column:attachments;not null;comment:[{\"file_key\": \"\", \"file_name\": \"\", \"file_type\": \"\"}]" json:"attachments"` // [{"file_key": "", "file_name": "", "file_type": ""}]
 	/*
 		[{
 		  "id": "dddd",
@@ -28,7 +28,7 @@ type Lesson struct {
 		   "end_position": 1
 		}]
 	*/
-	Chapters string    `gorm:"column:chapters;not null;comment:[{\n  "id": "dddd",\n   "name": "dddd",\n   "begin_position": 1,\n   "end_position": 1\n}]" json:"chapters"`
+	Chapters string    `gorm:"column:chapters;not null;comment:[{\n  \"id\": \"dddd\",\n   \"name\": \"dddd\",\n   \"begin_position\": 1,\n   \"end_position\": 1\n}]" json:"chapters"`
 	Status   int32     `gorm:"column:status;not null;comment:1  -1" json:"status"` // 1  -1
 	CreateAt time.Time `gorm:"column:create_at;not null" json:"create_at"`
 	CreateBy int64     `gorm:"column:create_by;not null" json:"create_by"`
