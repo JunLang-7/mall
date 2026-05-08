@@ -76,17 +76,6 @@ func (ctrl *Ctrl) OrderInfo(ctx *gin.Context) {
 	api.WriteResp(ctx, resp, errno)
 }
 
-func (ctrl *Ctrl) PaymentQuery(ctx *gin.Context) {
-	user := api.GetUserFromCtx(ctx)
-	req := &dto.PaymentQueryReq{}
-	if err := ctx.ShouldBindQuery(req); err != nil || req.OrderID <= 0 {
-		api.WriteResp(ctx, nil, *common.ParamErr.WithMsg("invalid order_id"))
-		return
-	}
-	resp, errno := ctrl.user.PaymentQuery(ctx.Request.Context(), user.UserID, req.OrderID)
-	api.WriteResp(ctx, resp, errno)
-}
-
 func (ctrl *Ctrl) WechatPaymentCallback(ctx *gin.Context) {
 	orderID, _ := strconv.ParseInt(ctx.Query("order_id"), 10, 64)
 	errno := ctrl.user.WechatNotifySuccess(ctx.Request.Context(), orderID)

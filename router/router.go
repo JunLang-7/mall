@@ -160,6 +160,7 @@ func (r *Router) customerRoute(root *gin.RouterGroup) {
 	cstRoot := root.Group("/customer", AuthMiddleware(r.SpanFilter, func(ctx context.Context, token string) (*common.User, error) {
 		return r.customer.GetCustomerUserByToken(ctx, token)
 	}))
+	// 登录无鉴权
 	cstRoot.GET("/v1/user/verify/captcha", r.customer.GetSmsCodeCaptcha)
 	cstRoot.POST("/v1/user/verify/captcha/check", r.customer.CheckSmsCodeCaptcha)
 	cstRoot.POST("/v1/user/verify/smscode", r.customer.GetSmsCodeVerify)
@@ -169,29 +170,38 @@ func (r *Router) customerRoute(root *gin.RouterGroup) {
 	cstRoot.POST("/v1/user/wechat/qrcode_login", r.customer.WechatQrCodeLogin)
 	cstRoot.GET("/v1/user/wechat/qrcode_status", r.customer.WechatQrCodeStatus)
 	cstRoot.POST("/v1/user/wechat/scan_confirm", r.customer.WechatScanConfirm)
+	cstRoot.POST("/v1/user/applet/login", r.customer.AppletLogin)
+
+	// 用户操作
 	cstRoot.GET("/v1/user/info", r.customer.GetUserInfo)
 	cstRoot.POST("/v1/user/change_password", r.customer.ChangePassword)
+	cstRoot.POST("/v1/user/change_password/smscode", r.customer.GetChangePasswordSmsCode)
 	cstRoot.POST("/v1/user/wechat/qrcode_bind", r.customer.WechatQrCodeBind)
 	cstRoot.POST("/v1/user/wechat/unbind", r.customer.WechatUnbind)
 
+	// 课程操作
 	cstRoot.GET("/v1/course/list", r.customer.ListCourse)
 	cstRoot.GET("/v1/course/detail", r.customer.CourseDetail)
 	cstRoot.GET("/v1/course/lesson/info", r.customer.LessonInfo)
 	cstRoot.GET("/v1/course/lesson/learn_info", r.customer.LessonLearnInfo)
 	cstRoot.POST("/v1/course/lesson/learn_report", r.customer.LessonLearnReport)
 	cstRoot.GET("/v1/course/purchased/list", r.customer.PurchasedCourseList)
+	cstRoot.GET("/v1/course/continue/list", r.customer.ContinueLearnList)
 
+	// 购物车操作
 	cstRoot.POST("/v1/cart/add_goods", r.customer.AddCartGoods)
 	cstRoot.POST("/v1/cart/remove_goods", r.customer.RemoveCartGoods)
 	cstRoot.GET("/v1/cart/list_goods", r.customer.ListCartGoods)
 
+	// 订单操作
 	cstRoot.POST("/v1/order/calc_fee", r.customer.CalcOrderFee)
 	cstRoot.POST("/v1/order/pay_now", r.customer.PayNow)
 	cstRoot.POST("/v1/order/pay_later", r.customer.PayLater)
 	cstRoot.POST("/v1/order/cancel", r.customer.CancelOrder)
 	cstRoot.GET("/v1/order/list", r.customer.OrderList)
 	cstRoot.GET("/v1/order/info", r.customer.OrderInfo)
-	cstRoot.GET("/v1/order/payment_query", r.customer.PaymentQuery)
+
+	// 微信回调接口
 	cstRoot.POST("/v1/wechat/callback/payment", r.customer.WechatPaymentCallback)
 	cstRoot.POST("/v1/wechat/callback/refund", r.customer.WechatRefundCallback)
 }

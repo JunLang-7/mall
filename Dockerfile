@@ -9,17 +9,16 @@ WORKDIR /data/build
 RUN go mod tidy
 RUN CGO_ENABLED=0 GOOS=linux go build -o mall.backend main.go
 
-RUN mkdir -p /data/wwwRoot/
-RUN pwd && ls -l
-RUN mv mall.backend /data/wwwRoot/mall.backend
-RUN chmod +x /data/wwwRoot/mall.backend
-RUN rm -rf /data/build
+RUN mkdir -p /data/wwwRoot/web/vendor/go-captcha-jslib
+RUN cp mall.backend /data/wwwRoot/mall.backend
+RUN cp -r web/*.html /data/wwwRoot/web/
+RUN cp -r web/vendor /data/wwwRoot/web/
 
 # golang mini runtime linux alpine
 FROM alpine:3.21
 
 RUN mkdir -p /data/wwwRoot/
-COPY --from=build /data/wwwRoot/mall.backend /data/wwwRoot/mall.backend
+COPY --from=build /data/wwwRoot/ /data/wwwRoot/
 
 RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
 RUN apk update && apk add tzdata

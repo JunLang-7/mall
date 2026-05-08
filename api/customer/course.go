@@ -80,3 +80,14 @@ func (ctrl *Ctrl) PurchasedCourseList(ctx *gin.Context) {
 	resp, errno := ctrl.user.ListPurchasedCourse(ctx.Request.Context(), user.UserID, *req)
 	api.WriteResp(ctx, resp, errno)
 }
+
+func (ctrl *Ctrl) ContinueLearnList(ctx *gin.Context) {
+	user := api.GetUserFromCtx(ctx)
+	req := &common.Pager{}
+	if err := ctx.ShouldBindQuery(req); err != nil {
+		api.WriteResp(ctx, nil, *common.ParamErr.WithErr(err))
+		return
+	}
+	resp, errno := ctrl.user.ListContinueLearn(ctx.Request.Context(), user.UserID, *req)
+	api.WriteResp(ctx, resp, errno)
+}

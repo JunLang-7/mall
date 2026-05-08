@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/JunLang-7/mall/adaptor/repo/model"
-	"github.com/JunLang-7/mall/adaptor/repo/query"
+	"github.com/JunLang-7/mall/adaptor/rpc"
 	"github.com/JunLang-7/mall/common"
 	"github.com/JunLang-7/mall/consts"
 	"github.com/JunLang-7/mall/service/do"
@@ -19,6 +20,46 @@ import (
 	"go.uber.org/zap"
 	"gorm.io/gorm"
 )
+
+func (s *Service) AppletLogin(ctx context.Context, req *dto.AppletLoginReq) (*dto.CustomerLoginResp, common.Errno) {
+	mockOpenID := "mock_openid_" + tools.UUIDHex()[:8]
+	user, errno := s.findOrCreateAppUser(ctx, mockOpenID, req.AppCode)
+	if !errno.IsOK() {
+		return nil, errno
+	}
+	return s.handleCustomerLogin(ctx, user)
+}
+
+func (s *Service) findOrCreateAppUser(ctx context.Context, openID string, appCode int32) (*model.User, common.Errno) {
+	appUser, err := s.userRepo.GetAppUserByOpenID(ctx, openID, appCode)
+	if err == nil && appUser != nil {
+		user, err := s.userRepo.GetUserByID(ctx, appUser.UserID)
+		if err == nil && user.Status == consts.IsEnable {
+			return user, common.OK
+		}
+	}
+	now := time.Now()
+	user := &model.User{
+		NickName:    "小程序用户" + tools.UUIDHex()[:4],
+		Sex:         0,
+		Status:      consts.IsEnable,
+		CreateAt:    now,
+		UpdateAt:    now,
+		LastLoginAt: now,
+	}
+	au := &model.AppUser{
+		OpenID:   openID,
+		AppCode:  appCode,
+		Status:   consts.IsEnable,
+		CreateAt: now,
+		UpdateAt: now,
+	}
+	if err := s.userRepo.CreateUserWithAppUser(ctx, user, au); err != nil {
+		logger.Error("findOrCreateAppUser error", zap.Error(err))
+		return nil, *common.DataBaseErr.WithErr(err)
+	}
+	return user, common.OK
+}
 
 func (s *Service) MobileVerifyLogin(ctx context.Context, req *dto.MobileVerifyCodeLoginReq) (*dto.CustomerLoginResp, common.Errno) {
 	if !s.checkSmsVerifyCode(ctx, req.Mobile, consts.CustomerMobileLoginSmsCode, req.VerifyCode) {
@@ -63,8 +104,7 @@ func (s *Service) MobilePasswordReset(ctx context.Context, req *dto.MobilePasswo
 	if err != nil {
 		return *common.ServerErr.WithErr(err)
 	}
-	q := query.Use(s.db).User
-	if _, err = q.WithContext(ctx).Where(q.ID.Eq(user.ID)).Update(q.Password, hash); err != nil {
+	if err = s.userRepo.UpdateUserPassword(ctx, user.ID, hash); err != nil {
 		return *common.DataBaseErr.WithErr(err)
 	}
 	_ = s.verify.CleanCustomerToken(ctx, user.ID)
@@ -83,8 +123,7 @@ func (s *Service) ChangePassword(ctx context.Context, userID int64, req *dto.Cha
 	if req.NewPassword != req.ConfirmPassword {
 		return nil, common.ConfirmPasswordErr
 	}
-	q := query.Use(s.db).User
-	user, err := q.WithContext(ctx).Where(q.ID.Eq(userID)).First()
+	user, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
 		return nil, *common.DataBaseErr.WithErr(err)
 	}
@@ -95,11 +134,53 @@ func (s *Service) ChangePassword(ctx context.Context, userID int64, req *dto.Cha
 	if err != nil {
 		return nil, *common.ServerErr.WithErr(err)
 	}
-	if _, err = q.WithContext(ctx).Where(q.ID.Eq(userID)).Update(q.Password, hash); err != nil {
+	if err = s.userRepo.UpdateUserPassword(ctx, userID, hash); err != nil {
 		return nil, *common.DataBaseErr.WithErr(err)
 	}
 	_ = s.verify.CleanCustomerToken(ctx, userID)
 	return &dto.ChangePasswordResp{ReloginRequired: true}, common.OK
+}
+
+func (s *Service) SendChangePasswordSmsCode(ctx context.Context, userID int64, ticket string) common.Errno {
+	_, err := s.verify.GetCaptchaTicket(ctx, ticket)
+	if err != nil {
+		if errors.Is(err, goredis.Nil) {
+			return common.InvalidCaptchaErr
+		}
+		return *common.RedisErr.WithErr(err)
+	}
+	mu, err := s.userRepo.GetMobileUserByUserID(ctx, userID)
+	if err != nil || mu == nil {
+		return *common.ParamErr.WithMsg("mobile not bound")
+	}
+	mobile, err := secure.DecryptAESGCM(mu.MobileAes, s.mobileAESKey())
+	if err != nil {
+		return *common.ServerErr.WithErr(err)
+	}
+	verifyCode := tools.GenValidateCode(4)
+	tokenFunc := func(ctx context.Context, force bool) (string, error) {
+		token, errno := s.token.GetLarkTenantAccessToken(ctx, consts.LarkAppCode, force)
+		if !errno.IsOK() {
+			return "", errors.New(common.ServerErr.ErrMsg)
+		}
+		return token.Token, nil
+	}
+	err = s.lark.SendLarkMsg(ctx, tokenFunc, &do.SendLarkMsg{
+		AppCode: consts.LarkAppCode,
+		OpenID:  s.conf.BizConf.LarkGroupID,
+		IDType:  rpc.LarkChatGroupType,
+		Content: fmt.Sprintf("<b>修改密码验证码通知</b>\\n\\n手机号：%s\\n验证码：%s", mobile, verifyCode),
+	})
+	if err != nil {
+		logger.Error("SendChangePasswordSmsCode SendLarkMsg error", zap.Error(err))
+		return *common.ServerErr.WithErr(err)
+	}
+	err = s.verify.SetVerifyCode(ctx, mobile, consts.CustomerChangePasswordSmsCode, verifyCode, consts.ExpireVerifyCodeErrTime)
+	if err != nil {
+		logger.Error("SendChangePasswordSmsCode SetVerifyCode error", zap.Error(err))
+		return *common.RedisErr.WithErr(err)
+	}
+	return common.OK
 }
 
 func (s *Service) GetCustomerUserByToken(ctx context.Context, token string) (*common.User, common.Errno) {
@@ -114,8 +195,7 @@ func (s *Service) GetCustomerUserByToken(ctx context.Context, token string) (*co
 	if err = json.Unmarshal([]byte(data), user); err != nil {
 		return nil, *common.ServerErr.WithErr(err)
 	}
-	q := query.Use(s.db).User
-	dbUser, err := q.WithContext(ctx).Where(q.ID.Eq(user.UserID)).First()
+	dbUser, err := s.userRepo.GetUserByID(ctx, user.UserID)
 	if err != nil || dbUser.Status != consts.IsEnable {
 		return nil, common.AuthErr
 	}
@@ -147,39 +227,26 @@ func (s *Service) findOrCreateMobileUser(ctx context.Context, mobile string) (*m
 		UpdateAt:    now,
 		LastLoginAt: now,
 	}
-	err = s.db.WithContext(ctx).Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(user).Error; err != nil {
-			return err
-		}
-		return tx.Create(&model.MobileUser{
-			UserID:       user.ID,
-			MobileAes:    mobileAES,
-			MobileSha256: mobileHash,
-			CreateAt:     now,
-			UpdateAt:     now,
-		}).Error
-	})
-	if err != nil {
+	mobileUser := &model.MobileUser{
+		MobileAes:    mobileAES,
+		MobileSha256: mobileHash,
+		CreateAt:     now,
+		UpdateAt:     now,
+	}
+	if err = s.userRepo.CreateUserWithMobileUser(ctx, user, mobileUser); err != nil {
 		return nil, *common.DataBaseErr.WithErr(err)
 	}
 	return user, common.OK
 }
 
 func (s *Service) getUserByMobile(ctx context.Context, mobile string) (*model.User, error) {
-	mq := query.Use(s.db).MobileUser
-	uq := query.Use(s.db).User
 	mobileHash := secure.MobileSHA256(mobile, s.conf.Security.MobileSHA256Salt)
-	mobileUser, err := mq.WithContext(ctx).Where(mq.MobileSha256.Eq(mobileHash)).First()
-	if err != nil {
-		return nil, err
-	}
-	return uq.WithContext(ctx).Where(uq.ID.Eq(mobileUser.UserID)).First()
+	return s.userRepo.GetUserByMobileHash(ctx, mobileHash)
 }
 
 func (s *Service) handleCustomerLogin(ctx context.Context, user *model.User) (*dto.CustomerLoginResp, common.Errno) {
 	now := time.Now()
-	uq := query.Use(s.db).User
-	_, _ = uq.WithContext(ctx).Where(uq.ID.Eq(user.ID)).Update(uq.LastLoginAt, now)
+	_ = s.userRepo.UpdateUserLastLoginAt(ctx, user.ID, now)
 	info, err := s.buildCustomerUserInfo(ctx, user.ID)
 	if err != nil {
 		return nil, *common.DataBaseErr.WithErr(err)
@@ -195,8 +262,7 @@ func (s *Service) handleCustomerLogin(ctx context.Context, user *model.User) (*d
 }
 
 func (s *Service) buildCustomerUserInfo(ctx context.Context, userID int64) (*dto.CustomerUserInfoDto, error) {
-	q := query.Use(s.db)
-	user, err := q.User.WithContext(ctx).Where(q.User.ID.Eq(userID)).First()
+	user, err := s.userRepo.GetUserByID(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -217,17 +283,19 @@ func (s *Service) buildCustomerUserInfo(ctx context.Context, userID int64) (*dto
 		urlMap, _ := s.storage.GetPreviewUrl(ctx, &do.GetPreviewUrl{Keys: []string{user.IconKey}, Expire: 6})
 		info.User.IconURL = urlMap[user.IconKey]
 	}
-	if mobileUser, err := q.MobileUser.WithContext(ctx).Where(q.MobileUser.UserID.Eq(userID)).First(); err == nil {
+	if mobileUser, err := s.userRepo.GetMobileUserByUserID(ctx, userID); err == nil {
 		mobile, _ := secure.DecryptAESGCM(mobileUser.MobileAes, s.mobileAESKey())
 		info.MobileUser = &dto.CustomerMobileUserDto{Mobile: mobile, UserID: userID}
 	}
-	if wx, err := q.WechatUser.WithContext(ctx).Where(q.WechatUser.UserID.Eq(userID)).First(); err == nil {
+	if wx, err := s.userRepo.GetWechatUserByUserID(ctx, userID); err == nil {
 		info.User.WechatBind = true
 		info.WechatUser = &dto.CustomerWechatUserDto{UserID: userID, UnionID: wx.UnionID}
 	}
-	if apps, err := q.AppUser.WithContext(ctx).Where(q.AppUser.UserID.Eq(userID)).Find(); err == nil {
+	if apps, err := s.userRepo.GetAppUsersByUserID(ctx, userID); err == nil {
 		for _, app := range apps {
-			info.AppUsers = append(info.AppUsers, &dto.CustomerAppUserDto{OpenID: app.OpenID, UserID: app.UserID, AppCode: app.AppCode})
+			info.AppUsers = append(info.AppUsers, &dto.CustomerAppUserDto{
+				OpenID: app.OpenID, UserID: app.UserID, AppCode: app.AppCode,
+			})
 		}
 	}
 	return info, nil

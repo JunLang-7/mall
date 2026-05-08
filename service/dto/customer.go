@@ -43,6 +43,12 @@ type CustomerLoginResp struct {
 	UserInfo *CustomerUserInfoDto `json:"user_info"`
 }
 
+type AppletLoginReq struct {
+	AppCode  int32  `json:"app_code"`
+	Code     string `json:"code"`
+	Platform string `json:"platform"`
+}
+
 type ChangePasswordReq struct {
 	OldPassword     string `json:"old_password"`
 	NewPassword     string `json:"new_password"`
@@ -319,10 +325,6 @@ type UserOrderListResp struct {
 	common.Pager
 	Total int64            `json:"total"`
 	List  []*OrderInfoResp `json:"list"`
-}
-
-type PaymentQueryReq struct {
-	OrderID int64 `form:"order_id"`
 }
 
 type RefundOrderReq struct {
